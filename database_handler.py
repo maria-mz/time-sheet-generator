@@ -1,7 +1,9 @@
 import csv
 import datetime 
 import calendar
+
 from pymongo import MongoClient
+from bson import ObjectId
 
 NUM_PAY_PERIOD_DAYS = 14
 DEFAULT_REG = 8.00
@@ -70,7 +72,7 @@ class DatabaseHandler:
         for i in range(NUM_PAY_PERIOD_DAYS):
             date = date_obj.strftime('%m/%d/%Y')
             day_of_week = calendar.day_name[date_obj.weekday()]
-            is_weekend = day_of_week == calendar.SATURDAY or day_of_week == calendar.SUNDAY
+            is_weekend = day_of_week == "Saturday" or day_of_week == "Sunday"
             work_day = {
                 "work_date": date,
                 "day_of_week": day_of_week,
@@ -95,18 +97,29 @@ class DatabaseHandler:
         """
         return list(self.employees.find())
     
-    def get_employee(self, name):
+    def get_employee(self, id):
         """
         Retrive an employee's information
 
         Parameters:
-            name (str): The full name of the employee
+            id (str): The id of the employee
 
         Returns:
             A single dictionary representing the employee record matching the provided name.
             None if no match is found
         """
-        return self.employees.find_one({"full_name": name})
+        input_id = ObjectId(id)
+        return self.employees.find_one({"_id": input_id})
+
+    def update_employee(self, id, new_data):
+        input_id = ObjectId(id)
+        result = self.employees.update_one({"_id": input_id}, {'$set': new_data})
+
+        # Check if the update was successful
+        if result.modified_count > 0:
+            print("Updated successfully!")
+        else:
+            print("No employee found matching the filter OR no change.")
     
     def set_date_and_reset(self, year, month, day):
         """
@@ -151,9 +164,13 @@ class DatabaseHandler:
     # For debugging purposes, delete later
     def print(self):
         for employee in self.employees.find():
+            print("ID:", employee["_id"])
             print("Full name:", employee["full_name"])
             print("Job title:", employee["job_title"])
             print("Work days:")
             for work_day in employee["work_days"]:
                 print(work_day["work_date"], work_day["day_of_week"], work_day["time_in"], work_day["time_out"], work_day["regular_hours"], work_day["overtime_hours"])
 
+
+# db = DatabaseHandler()
+# db.read_csv()
