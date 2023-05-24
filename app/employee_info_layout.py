@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
     QGridLayout,
     QCompleter,
     QPushButton,
+    QMessageBox
 )
 from database_handler import DatabaseHandler
 from database_handler import NUM_PAY_PERIOD_DAYS
@@ -200,6 +201,7 @@ class EmployeeInfoLayout(QVBoxLayout):
         save_button.clicked.connect(self.on_save)
 
         delete_button = QPushButton("Delete Employee")
+        delete_button.clicked.connect(self.on_delete)
 
         spacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
@@ -261,4 +263,24 @@ class EmployeeInfoLayout(QVBoxLayout):
 
         # Signify that editing is now finished
         self.finished_edit_signal.emit()
+
+    @Slot()
+    def on_delete(self):
+        # Show confirmation message
+        msg = QMessageBox()
+        msg.setText("Delete this employee?")
+        msg.setInformativeText("This will permanently delete the employee and their data.")    
+        msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msg.setDefaultButton(QMessageBox.Yes)    
+        choice = msg.exec()
+
+        if choice == QMessageBox.Yes:
+            # Update the database
+            self.handler.delete_employee(self.get_data_attribute('_id'))
+
+            # Signify that editing is now finished
+            self.finished_edit_signal.emit()
+
+        # Else, do nothing
+    
     
