@@ -6,8 +6,8 @@ from pymongo import MongoClient
 from bson import ObjectId
 
 NUM_PAY_PERIOD_DAYS = 14
-DEFAULT_REG = 8.00
-DEFAULT_OT = 0.00
+DEFAULT_REG = "8.00"
+DEFAULT_OT = "0.00"
 TIME_IN = '9:00 AM'
 TIME_OUT = '5:00 PM'
 
@@ -78,7 +78,7 @@ class DatabaseHandler:
                 "day_of_week": day_of_week,
                 "time_in": "" if is_weekend else TIME_IN,
                 "time_out": "" if is_weekend else TIME_OUT,
-                "regular_hours": 0.00 if is_weekend else DEFAULT_REG,
+                "regular_hours": "0.00" if is_weekend else DEFAULT_REG,
                 "overtime_hours": DEFAULT_OT
             }
             work_days.append(work_day)
@@ -120,6 +120,16 @@ class DatabaseHandler:
             print("Updated successfully!")
         else:
             print("No employee found matching the filter OR no change.")
+
+    def delete_employee(self, id):
+        input_id = ObjectId(id)
+        result = self.employees.delete_one({"_id": input_id})
+
+        # Check if the update was successful
+        if result.deleted_count == 1:
+            print("Delete success!")
+        else:
+            print("No employee found matching the filter OR deletion failed.")
     
     def set_date_and_reset(self, year, month, day):
         """
