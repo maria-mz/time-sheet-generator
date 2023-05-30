@@ -5,9 +5,10 @@ from PySide6.QtWidgets import (
     QAbstractItemView,
     QVBoxLayout,
     QTableWidget,
-    QTableWidgetItem
+    QTableWidgetItem,
+    QLineEdit
 )
-from PySide6.QtGui import QColor
+from PySide6.QtGui import QColor, QFont
 from PySide6.QtCore import Qt, Slot
 from database_handler import DatabaseHandler
 from employee_info_layout import EmployeeInfoLayout
@@ -21,16 +22,26 @@ COUNT_PROFILE = 3
 class EmployeesWidget(QWidget):
     def __init__(self):
         super().__init__()
+        # Set up search bar
+        self.query = QLineEdit()
+        self.query.setMaxLength(40)
+        self.query.setPlaceholderText("Search by name")
+        self.query.textChanged.connect(self.filter_table_by_name)
+
 
         # Set up the table
         self.table = QTableWidget(self)
         self.table.setColumnCount(COUNT_PROFILE + (COUNT_WORKDAY * COUNT_PAYPERIOD))
         self.refresh_table()
+
+        # Hide the first column with the ID
+        self.table.setColumnHidden(0, True)     
         self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.table.cellDoubleClicked.connect(self.on_cell_double_clicked)
+        self.table.cellDoubleClicked.connect(self.show_employee)
 
         # Set layout for the main window
         layout = QVBoxLayout()
+        layout.addWidget(self.query)
         layout.addWidget(self.table)
         self.setLayout(layout)
 
@@ -42,10 +53,11 @@ class EmployeesWidget(QWidget):
         self.table.setRowCount(0)  # Reset row count to 0
         self.set_all_headers()
         self.populate_table()
+        self.table.resizeColumnsToContents()
         
     def insert_table_item(self, row, column, content):
         """
-        Inserts a cell into the table that is non-editable, and highlighted if a week day.
+        Inserts a cell into the table that is non-editable, and bolded if a week day.
 
         Parameters:
             row (int): the row of the cell.
@@ -56,7 +68,9 @@ class EmployeesWidget(QWidget):
         item.setFlags(~Qt.ItemIsEditable)
 
         if (column - COUNT_PROFILE) % COUNT_WORKDAY == 0:
-            item.setBackground(QColor(224, 229, 233))
+            font = QFont()
+            font.setBold(True)
+            item.setFont(font)
 
         self.table.setItem(row, column, item)
 
@@ -127,13 +141,10 @@ class EmployeesWidget(QWidget):
                     day['work_date'],
                     day['time_in'],
                     day['time_out'],
-                    str(format(day['regular_hours'], '.2f')),
-                    str(format(day['overtime_hours'], '.2f'))
+                    day['regular_hours'],
+                    day['overtime_hours']
                 ])
             self.insert_table_items(row, COUNT_PROFILE, contents)
-        
-        self.table.setColumnHidden(0, True)
-        self.table.resizeColumnsToContents()
 
     def get_id(self, row):
         """
@@ -147,20 +158,43 @@ class EmployeesWidget(QWidget):
         """
         return self.table.item(row, 0).text()
     
+
+    """
+    Slots
+    """
+    @Slot()
+    def filter_table_by_name(self, query):
+        """
+        Filters out rows of the table not containing the query. Filters by employee name.
+
+        Parameters:
+            query (str): contents of search bar.
+        """
+
+        # Clear the current selection
+        self.table.setCurrentItem(None)
+
+        for row in range(self.table.rowCount()):
+            if query.lower().strip() not in self.table.item(row, 1).text().lower():
+                self.table.setRowHidden(row, True)
+            else:
+                self.table.setRowHidden(row, False)
+
     @Slot(int, int)
-    def on_cell_double_clicked(self, row, column):
+    def show_employee(self, row, column):
         self.employee_popup = QWidget()
         self.employee_popup.setGeometry(900, 150, 500, 300)
+        self.employee_popup.setWindowTitle("Edit Employee")
 
         data = self.handler.get_employee(id=self.get_id(row))
 
         employee_info_layout = EmployeeInfoLayout(data)
-        employee_info_layout.edit_signal.connect(self._on_employee_edited)
+        employee_info_layout.finished_edit_signal.connect(self.close_employee)
 
         self.employee_popup.setLayout(employee_info_layout)
         self.employee_popup.show()
 
     @Slot()
-    def _on_employee_edited(self):
+    def close_employee(self):
         self.employee_popup.close()
         self.refresh_table()
