@@ -121,6 +121,23 @@ class DatabaseHandler:
         else:
             print("No employee found matching the filter OR no change.")
 
+    def add_new_employee(self, name, title):
+        """
+        Adds an employee to the database. Work days are automatically generated based on pay period.
+
+        Parameters:
+            name (str): The full name of the employee.
+            title (str): The job title of the employee.
+        """
+        year, month, day = self.get_start_date()
+        default_work_days = self._initialize_work_days(year, month, day)
+
+        self.employees.insert_one(
+            {"full_name": name,
+            "job_title": title,
+            "work_days": default_work_days}
+        )
+
     def delete_employee(self, id):
         input_id = ObjectId(id)
         result = self.employees.delete_one({"_id": input_id})
