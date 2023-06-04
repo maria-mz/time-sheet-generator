@@ -30,17 +30,23 @@ MAX_LEN_HOURS = 5
 class EmployeeInfoLayout(QVBoxLayout):
     finished_edit_signal = Signal()
 
-    def __init__(self, data):
+    def __init__(self, isEdit, data = None):
         super().__init__()
 
         self.handler = DatabaseHandler()
-        self.data = data
+
+        if isEdit:
+            self.data = data
+        else:
+            self.data = self.handler.get_employee_template()
+        
+        self.isEdit = isEdit
 
         # Initialize profile field attributes
         profile_attributes = ['full_name', 'job_title']
 
         for attribute in profile_attributes:
-            field = self.init_input_field(self.get_data_attribute(attribute), MAX_LEN_PROFILE)
+            field = self.init_input_field(self.get_data_attr(attribute), MAX_LEN_PROFILE)
             setattr(self, f'{attribute}_field', field)
 
         # Initialize date field attribute
@@ -50,7 +56,7 @@ class EmployeeInfoLayout(QVBoxLayout):
         workday_attributes = ['time_in', 'time_out', 'regular_hours', 'overtime_hours']
 
         for i, attribute in enumerate(workday_attributes):
-            default_value = self.get_workday_attribute_at_index(0, attribute)
+            default_value = self.get_workday_attr_at_index(0, attribute)
             field = self.init_input_field(default_value, MAX_LEN_TIME if i < 2 else MAX_LEN_HOURS)
             setattr(self, f'{attribute}_field', field)
 
@@ -61,16 +67,16 @@ class EmployeeInfoLayout(QVBoxLayout):
         employee_box.setLayout(self.init_layout())
         self.addWidget(employee_box)
 
-    def get_data_attribute(self, attribute):
+    def get_data_attr(self, attribute):
         return self.data[attribute]
     
-    def set_data_attribute(self, attribute, new_value):
+    def set_data_attr(self, attribute, new_value):
         self.data[attribute] = new_value
 
-    def get_workday_attribute_at_index(self, index, attribute):
+    def get_workday_attr_at_index(self, index, attribute):
         return self.data['work_days'][index][attribute]
 
-    def set_workday_attribute_at_index(self, index, attribute, new_value):
+    def set_workday_attr_at_index(self, index, attribute, new_value):
         self.data['work_days'][index][attribute] = new_value
 
     def init_input_field(self, content, max_chars):
@@ -94,11 +100,11 @@ class EmployeeInfoLayout(QVBoxLayout):
         return selector
 
     def connect_signals(self):
-        self.date_field.currentIndexChanged.connect(self.on_date_selected)
-        self.time_in_field.editingFinished.connect(self.on_time_in_edited)
-        self.time_out_field.editingFinished.connect(self.on_time_out_edited)
-        self.regular_hours_field.editingFinished.connect(self.on_regular_hours_edited)
-        self.overtime_hours_field.editingFinished.connect(self.on_overtime_hours_edited)
+        self.date_field.currentIndexChanged.connect(self.apply_date)
+        self.time_in_field.editingFinished.connect(self.update_time_in)
+        self.time_out_field.editingFinished.connect(self.update_time_out)
+        self.regular_hours_field.editingFinished.connect(self.update_regular_hours)
+        self.overtime_hours_field.editingFinished.connect(self.update_overtime_hours)
 
     def init_layout(self):
         main_layout = QVBoxLayout()
@@ -196,91 +202,95 @@ class EmployeeInfoLayout(QVBoxLayout):
 
     def create_buttons_layout(self):
         button_layout = QHBoxLayout()
-        
+
         save_button = QPushButton("Save")
-        save_button.clicked.connect(self.on_save)
+        save_button.clicked.connect(self.save_employee)
 
-        delete_button = QPushButton("Delete Employee")
-        delete_button.clicked.connect(self.on_delete)
-
+        # Horizontal spacer to keep buttons apart
         spacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
-        button_layout.addWidget(delete_button)
+        if self.isEdit:
+            delete_button = QPushButton("Delete Employee")
+            delete_button.clicked.connect(self.delete_employee)
+            button_layout.addWidget(delete_button)
+
         button_layout.addItem(spacer)
         button_layout.addWidget(save_button)
 
         return button_layout
 
     def update_workday_fields(self, index):
-        self.time_in_field.setText(self.get_workday_attribute_at_index(index,'time_in'))
-        self.time_out_field.setText(self.get_workday_attribute_at_index(index,'time_out'))
-        self.regular_hours_field.setText(self.get_workday_attribute_at_index(index,'regular_hours'))
-        self.overtime_hours_field.setText(self.get_workday_attribute_at_index(index,'overtime_hours'))
+        self.time_in_field.setText(self.get_workday_attr_at_index(index,'time_in'))
+        self.time_out_field.setText(self.get_workday_attr_at_index(index,'time_out'))
+        self.regular_hours_field.setText(self.get_workday_attr_at_index(index,'regular_hours'))
+        self.overtime_hours_field.setText(self.get_workday_attr_at_index(index,'overtime_hours'))
 
     def save_fields_to_data(self):
         index = self.date_field.currentIndex()
-        self.set_data_attribute('full_name', self.full_name_field.text())
-        self.set_data_attribute('job_title', self.job_title_field.text())
-        self.set_workday_attribute_at_index(index, 'time_in', self.time_in_field.text())
-        self.set_workday_attribute_at_index(index, 'time_out',  self.time_out_field.text())
-        self.set_workday_attribute_at_index(index, 'regular_hours',  self.regular_hours_field.text())
-        self.set_workday_attribute_at_index(index, 'overtime_hours',  self.overtime_hours_field.text())
+        self.set_data_attr('full_name', self.full_name_field.text())
+        self.set_data_attr('job_title', self.job_title_field.text())
+        self.set_workday_attr_at_index(index, 'time_in', self.time_in_field.text())
+        self.set_workday_attr_at_index(index, 'time_out',  self.time_out_field.text())
+        self.set_workday_attr_at_index(index, 'regular_hours',  self.regular_hours_field.text())
+        self.set_workday_attr_at_index(index, 'overtime_hours',  self.overtime_hours_field.text())
 
     """
     Slots for editing data fields.
     """
     @Slot(int)
-    def on_date_selected(self, index):
+    def apply_date(self, index):
         self.update_workday_fields(index)
 
     @Slot()
-    def on_time_in_edited(self):
+    def update_time_in(self):
         index = self.date_field.currentIndex()
-        self.set_workday_attribute_at_index(index, 'time_in', self.time_in_field.text())
+        self.set_workday_attr_at_index(index, 'time_in', self.time_in_field.text())
 
     @Slot()
-    def on_time_out_edited(self):
+    def update_time_out(self):
         index = self.date_field.currentIndex()
-        self.set_workday_attribute_at_index(index, 'time_out', self.time_out_field.text())
+        self.set_workday_attr_at_index(index, 'time_out', self.time_out_field.text())
 
     @Slot()
-    def on_regular_hours_edited(self):
+    def update_regular_hours(self):
         index = self.date_field.currentIndex()
-        self.set_workday_attribute_at_index(index, 'regular_hours', self.regular_hours_field.text())
+        self.set_workday_attr_at_index(index, 'regular_hours', self.regular_hours_field.text())
 
     @Slot()
-    def on_overtime_hours_edited(self):
+    def update_overtime_hours(self):
         index = self.date_field.currentIndex()
-        self.set_workday_attribute_at_index(index, 'overtime_hours', self.overtime_hours_field.text())
+        self.set_workday_attr_at_index(index, 'overtime_hours', self.overtime_hours_field.text())
 
     @Slot()
-    def on_save(self):
+    def save_employee(self):
         # Save each field currently in the view
         self.save_fields_to_data()
 
         # Update the database with the new data
-        self.handler.update_employee(self.get_data_attribute('_id'), self.data)
+        if self.isEdit:
+            self.handler.update_employee(self.get_data_attr('_id'), self.data)
+        else:
+            self.handler.add_new_employee(self.data)
 
         # Signify that editing is now finished
         self.finished_edit_signal.emit()
 
     @Slot()
-    def on_delete(self):
+    def delete_employee(self):
         # Show confirmation message
         msg = QMessageBox()
         msg.setText("Delete this employee?")
-        msg.setInformativeText("This will permanently delete the employee and their data.")    
+        msg.setInformativeText("This will permanently delete the employee and all their data.")    
         msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
         msg.setDefaultButton(QMessageBox.Yes)    
         choice = msg.exec()
 
         if choice == QMessageBox.Yes:
             # Update the database
-            self.handler.delete_employee(self.get_data_attribute('_id'))
+            self.handler.delete_employee(self.get_data_attr('_id'))
 
             # Signify that editing is now finished
             self.finished_edit_signal.emit()
 
         # Else, do nothing
-    
     
