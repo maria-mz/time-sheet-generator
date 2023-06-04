@@ -6,7 +6,12 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QTableWidget,
     QTableWidgetItem,
-    QLineEdit
+    QLineEdit,
+    QPushButton,
+    QHBoxLayout,
+    QLabel,
+    QSpacerItem,
+    QSizePolicy
 )
 from PySide6.QtGui import QColor, QFont
 from PySide6.QtCore import Qt, Slot
@@ -22,28 +27,72 @@ COUNT_PROFILE = 3
 class EmployeesWidget(QWidget):
     def __init__(self):
         super().__init__()
-        # Set up search bar
-        self.query = QLineEdit()
-        self.query.setMaxLength(40)
-        self.query.setPlaceholderText("Search by name")
-        self.query.textChanged.connect(self.filter_table_by_name)
 
+        self.setup_header()
+        
+        # Search bar
+        self.search_bar = QLineEdit()
+        self.init_search_bar()
 
-        # Set up the table
+        # Table with employees data
         self.table = QTableWidget(self)
+        self.init_table()
+
+        # Set layout for the main window
+        self.set_main_layout()
+
+    def setup_header(self):
+        # Title 
+        self.title = QLabel("Employees")
+        self.title.setStyleSheet("font-weight: bold; font-size: 24px")
+
+        # Button(s)
+        self.add_employee_btn = QPushButton("Add Employee")
+        self.add_employee_btn.clicked.connect(self.add_employee)
+
+    def init_search_bar(self):
+        """
+        Sets the max length, placeholder text, and signal slot for the search bar.
+        """
+        self.search_bar.setMaxLength(40)
+        self.search_bar.setPlaceholderText("Search by name")
+        self.search_bar.textChanged.connect(self.filter_table_by_name)
+
+    def init_table(self):
+        """
+        Populates and sets the properties for the employeees table. 
+        """
         self.table.setColumnCount(COUNT_PROFILE + (COUNT_WORKDAY * COUNT_PAYPERIOD))
+
+        # Populate the table
         self.refresh_table()
 
         # Hide the first column with the ID
         self.table.setColumnHidden(0, True)     
-        self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
-        self.table.cellDoubleClicked.connect(self.show_employee)
 
-        # Set layout for the main window
-        layout = QVBoxLayout()
-        layout.addWidget(self.query)
-        layout.addWidget(self.table)
-        self.setLayout(layout)
+        self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
+        self.table.cellDoubleClicked.connect(self.edit_employee)
+
+    def set_main_layout(self):
+        """
+        Creates and sets the layout for the EmployeesWidget.
+        """
+        main_layout = QVBoxLayout()
+
+        header_layout = QHBoxLayout()
+        header_layout.addWidget(self.title)
+
+        # Add a horizontal spacer to keep the title and button apart
+        spacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
+        header_layout.addItem(spacer)
+
+        header_layout.addWidget(self.add_employee_btn)
+
+        main_layout.addLayout(header_layout)
+        main_layout.addWidget(self.search_bar)
+        main_layout.addWidget(self.table)
+
+        self.setLayout(main_layout)
 
     def refresh_table(self):
         """
@@ -157,12 +206,18 @@ class EmployeesWidget(QWidget):
             A string representing the employee's ID.
         """
         return self.table.item(row, 0).text()
-    
 
+    def create_window(self, title, layout):
+        self.employee_popup = QWidget()
+        self.employee_popup.setGeometry(900, 150, 500, 300)
+        self.employee_popup.setWindowTitle(title)
+        self.employee_popup.setLayout(layout)
+        self.employee_popup.show()
+        
     """
     Slots
     """
-    @Slot()
+    @Slot(str)
     def filter_table_by_name(self, query):
         """
         Filters out rows of the table not containing the query. Filters by employee name.
@@ -170,7 +225,6 @@ class EmployeesWidget(QWidget):
         Parameters:
             query (str): contents of search bar.
         """
-
         # Clear the current selection
         self.table.setCurrentItem(None)
 
@@ -180,19 +234,20 @@ class EmployeesWidget(QWidget):
             else:
                 self.table.setRowHidden(row, False)
 
+    @Slot()
+    def add_employee(self):
+        layout = EmployeeInfoLayout(isEdit=False)
+        layout.finished_edit_signal.connect(self.close_employee)
+
+        self.create_window("Add Employee", layout)
+
     @Slot(int, int)
-    def show_employee(self, row, column):
-        self.employee_popup = QWidget()
-        self.employee_popup.setGeometry(900, 150, 500, 300)
-        self.employee_popup.setWindowTitle("Edit Employee")
-
+    def edit_employee(self, row, column):
         data = self.handler.get_employee(id=self.get_id(row))
+        layout = EmployeeInfoLayout(isEdit=True, data=data)
+        layout.finished_edit_signal.connect(self.close_employee)
 
-        employee_info_layout = EmployeeInfoLayout(data)
-        employee_info_layout.finished_edit_signal.connect(self.close_employee)
-
-        self.employee_popup.setLayout(employee_info_layout)
-        self.employee_popup.show()
+        self.create_window("Edit Employee", layout)
 
     @Slot()
     def close_employee(self):
