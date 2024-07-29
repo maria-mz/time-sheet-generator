@@ -13,8 +13,8 @@ class EmployeeAlreadyExistsError(Exception):
 
 
 class DatabaseHandler:
-    def __init__(self, db_name: str):
-        self.conn = sqlite3.connect(db_name)
+    def __init__(self, db_path: str):
+        self.conn = sqlite3.connect(db_path)
         self.cur = self.conn.cursor()
         self.cur.execute("PRAGMA foreign_keys = ON;")
 
@@ -22,9 +22,16 @@ class DatabaseHandler:
         """
         Create a new `settings` table if one doesn't exist already.
         """
+        row = self.cur.execute(
+            "SELECT name FROM sqlite_master WHERE name='settings'"
+        ).fetchone()
+
+        if row is not None: # Table exists
+            return
+
         self.cur.execute(
             """
-            CREATE TABLE IF NOT EXISTS settings(
+            CREATE TABLE settings(
                 key TEXT PRIMARY KEY,
                 value TEXT
             )

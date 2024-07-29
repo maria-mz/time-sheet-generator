@@ -6,12 +6,12 @@ from db.db_handler import DatabaseHandler
 from db.db_data import PayPeriod, Employee, Shift
 
 
-TEST_DB_NAME = "test_database.db"
+TEST_DB_PATH = "tests/test_database.db"
 
 
 @pytest.fixture(name="db_handler", scope="session")
 def fixture_db_handler():
-    db_handler = DatabaseHandler(TEST_DB_NAME)
+    db_handler = DatabaseHandler(TEST_DB_PATH)
 
     # Start with fresh empty tables
     db_handler.delete_shift_table()

@@ -12,6 +12,6 @@ DEFAULT_TIME_OUT = datetime.time(hour=17) # 5 PM
 TIME_FORMAT = "%H:%M"
 DATE_FORMAT = "%Y-%m-%d"
 
-DB_NAME = "database.db"
+DB_PATH = "assets/database.db"
 
 APP_NAME = "Timesheet Generator"
