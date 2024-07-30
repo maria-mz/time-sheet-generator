@@ -1,12 +1,21 @@
-from PySide6.QtWidgets import QApplication
 import sys
-from tab_widget import TabWidget
+import logging
+from PySide6.QtWidgets import QApplication
 
-# Create the application
+from gui.main_window import MainWindow
+
+
+logging.basicConfig(
+    format=" %(asctime)s %(levelname)s [%(filename)s:%(lineno)d] %(message)s"
+)
+
+logging.getLogger().setLevel(logging.INFO)
+
+
 app = QApplication(sys.argv)
 
-widget = TabWidget()
-widget.show()
+main_window = MainWindow()
+main_window.show()
 
 # Run the event loop
 app.exec()
