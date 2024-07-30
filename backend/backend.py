@@ -5,6 +5,8 @@ import pandas as pd
 import atexit
 import logging
 
+from backend.errors import CSVReadError
+from backend.error_handler import error_handler
 from db.db_handler import DatabaseHandler
 from db.db_data import PayPeriod, Shift, Employee
 import utils
@@ -12,13 +14,6 @@ import constants
 
 
 _logger = logging.getLogger(__name__)
-
-
-class CSVReadError(Exception):
-    """
-    Raised when the backend fails to read the provided .csv file for
-    importing employees 
-    """
 
 
 class Backend:
@@ -35,10 +30,14 @@ class Backend:
 
         _logger.info("backend ready")
 
+    @error_handler
     def get_pay_period(self) -> Union[PayPeriod, None]:
         return self.db_handler.get_pay_period()
 
+    @error_handler
     def update_pay_period(self, pay_period: PayPeriod) -> None:
+        _logger.info(f"updating pay period to {pay_period}")
+
         self.db_handler.update_pay_period(pay_period)
 
         self.db_handler.delete_shift_table()
@@ -49,29 +48,38 @@ class Backend:
 
         self.db_handler.commit()
 
+        _logger.info(f"pay period updated!")
+
+    @error_handler
     def update_employee(self, employee: Employee) -> None:
         self.db_handler.update_employee(employee)
         self.db_handler.commit()
 
+    @error_handler
     def update_employees(self, employees: list[Employee]) -> None:
         self.db_handler.update_employees(employees)
         self.db_handler.commit()
 
+    @error_handler
     def add_employee(self, employee: Employee) -> None:
         self.db_handler.add_employee(employee)
         self.db_handler.commit()
 
+    @error_handler
     def add_employees(self, employees: list[Employee]) -> None:
         self.db_handler.add_employees(employees)
         self.db_handler.commit()
 
+    @error_handler
     def delete_employee(self, employee: Employee) -> None:
         self.db_handler.delete_employee(employee.employee_id)
         self.db_handler.commit()
 
+    @error_handler
     def get_employees(self) -> list[Employee]:
         return self.db_handler.get_employees()
 
+    @error_handler
     def generate_employees_from_csv(self, file_path: str) -> list[Employee]:
         employees = []
 
@@ -125,11 +133,15 @@ class Backend:
             shifts=self._get_fresh_shifts()
         )
 
-    def _shutdown(self) -> None:
+    def shutdown(self) -> None:
         _logger.info("backend shutting down")
         self.db_handler.close()
 
 
-backend = Backend()
+try:
+    backend = Backend()
+except Exception as e:
+    _logger.exception(f"failed to initialize backend. terminating program")
+    exit(1)
 
-atexit.register(backend._shutdown)
+atexit.register(backend.shutdown)
