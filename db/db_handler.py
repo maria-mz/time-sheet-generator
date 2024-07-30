@@ -139,6 +139,7 @@ class DatabaseHandler:
                 employee_id=row[0],
                 full_name=row[1],
                 position=row[2],
+                shifts=[]
             )
 
             shifts = self._get_shifts(employee.employee_id)
@@ -169,23 +170,23 @@ class DatabaseHandler:
     def add_employee(self, employee: Employee) -> None:
         """
         Add a new employee. If there is already an employee with the same id,
-        raises sqlite3.IntegrityError.
+        raises EmployeeAlreadyExistsError.
         """
         v = f"'{employee.employee_id}', '{employee.full_name}', '{employee.position}'"
 
-        self.cur.execute(f"INSERT INTO employee VALUES ({v})")
+        try:
+            self.cur.execute(f"INSERT INTO employee VALUES ({v})")
+        except sqlite3.IntegrityError:
+            raise EmployeeAlreadyExistsError(
+                f"There is already an employee with employee number '{employee.employee_id}'"
+            )
 
         for shift in employee.shifts:
             self._add_shift(employee.employee_id, shift)
 
     def add_employees(self, employees: list[Employee]) -> None:
         for employee in employees:
-            try:
-                self.add_employee(employee)
-            except sqlite3.IntegrityError:
-                raise EmployeeAlreadyExistsError(
-                    f"Already an employee with number '{employee.employee_id}'"
-                )
+            self.add_employee(employee)
 
     def delete_employee(self, employee_id: str) -> None:
         """
