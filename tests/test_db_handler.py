@@ -2,7 +2,7 @@ import sqlite3
 import datetime
 import pytest
 
-from db.db_handler import DatabaseHandler
+from db.db_handler import DatabaseHandler, EmployeeAlreadyExistsError
 from db.db_data import PayPeriod, Employee, Shift
 
 
@@ -73,7 +73,7 @@ def test_add_employee__duplicate(db_handler: DatabaseHandler):
         shifts=[]
     )
 
-    with pytest.raises(sqlite3.IntegrityError):
+    with pytest.raises(EmployeeAlreadyExistsError):
         db_handler.add_employee(employee2)
 
 
