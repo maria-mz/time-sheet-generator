@@ -11,6 +11,8 @@ employees = database['employees']
 
 PDF_WIDTH, PDF_HEIGHT = A4
 
+# TODO: Move to backend dir and use sqlite db handler not MongoDB
+
 def write_text(pdf, font, font_size, text_content, x, y):
 	text = pdf.beginText()
 	text.setFont(font, font_size)
