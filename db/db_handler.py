@@ -75,6 +75,10 @@ class DatabaseHandler:
             """
         )
 
+        self.cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_employee_id ON shift (employee_id)"
+        )
+
     def delete_settings_table(self) -> None:
         """
         Delete the `settings` table if it exists.
