@@ -42,6 +42,10 @@ class SettingsTab(QWidget):
 
         self.setLayout(layout)
 
+    def update_pay_period(self, pay_period: PayPeriod):
+        self.q_pay_period.start_date_edit.setDate(qutils.date_to_qdate(pay_period.start_date))
+        self.q_pay_period.end_date_edit.setDate(qutils.date_to_qdate(pay_period.end_date))
+
     def _create_main_layout(self) -> QVBoxLayout:
         layout = QVBoxLayout()
 
