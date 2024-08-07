@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
     QSpacerItem,
     QMessageBox
 )
-from PySide6.QtCore import Signal, Qt
+from PySide6.QtCore import Signal
 from enum import Enum
 
 import gui.constants

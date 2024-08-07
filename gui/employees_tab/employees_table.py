@@ -49,13 +49,13 @@ class EmployeesTable(QTableWidget):
 
                 self.setItem(row, col, qitem)
 
-    def filter_table_by_name(self, name: str):
+    def filter_table_by_first_name(self, name: str):
         self.setCurrentItem(None) # Clear the current selection
 
         std_name = name.lower().strip()
 
         for row in range(self.rowCount()):
-            if self.get_employee_from_row(row).full_name.lower().startswith(std_name):
+            if self.get_employee_from_row(row).first_name.lower().startswith(std_name):
                 self.setRowHidden(row, False)
             else:
                 self.setRowHidden(row, True)
