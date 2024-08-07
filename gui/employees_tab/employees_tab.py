@@ -6,7 +6,8 @@ from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QSpacerItem,
-    QSizePolicy
+    QSizePolicy,
+    QFrame
 )
 from PySide6.QtCore import Slot
 
@@ -23,40 +24,55 @@ class EmployeesTab(QWidget):
 
         employees = backend.get_employees()
 
+        self.title = QLabel()
+        self._update_title(len(employees))
+        self.title.setStyleSheet("font-weight: bold; font-size: 24px")
+
         self.table = EmployeesTable()
         self.table.populate_table(employees)
-        self.table.cellDoubleClicked.connect(self.edit_employee_popup)
+        self.table.cellDoubleClicked.connect(self._open_edit_employee_window)
 
-        header_layout = self._create_header_layout()
-        search_bar = self._create_search_bar()
+        self.search_bar = self._create_search_bar()
 
-        layout = QVBoxLayout()
+        self.window_popup = None
 
-        layout.addLayout(header_layout)
-        layout.addWidget(search_bar)
-        layout.addWidget(self.table)
+        layout = self._create_main_layout()
 
         self.setLayout(layout)
 
+    def _create_main_layout(self) -> QVBoxLayout:
+        layout = QVBoxLayout()
+
+        header_layout = self._create_header_layout()
+        buttons = self._create_buttons()
+
+        # Create this container for custom spacing between search bar and table
+        container = QVBoxLayout()
+        container.setSpacing(16)
+        container.addWidget(self.search_bar)
+        container.addWidget(self.table)
+
+        layout.addLayout(header_layout)
+        layout.addLayout(container)
+        layout.addLayout(buttons)
+
+        return layout
+
     def _create_header_layout(self) -> QHBoxLayout:
-        title = QLabel(f"Employees")
-        title.setStyleSheet("font-weight: bold; font-size: 24px")
+        subtitle = QLabel(
+            "Edit employee details and timesheet information here. " + \
+            "Click an employee to open the editor."
+        )
 
-        import_csv_btn = QPushButton("Import CSV")
-        import_csv_btn.clicked.connect(self.import_csv_popup)
+        line = QFrame()
+        line.setFrameShape(QFrame.HLine)
+        line.setFrameShadow(QFrame.Sunken)
 
-        add_employee_btn = QPushButton("Add Employee")
-        add_employee_btn.clicked.connect(self.add_employee_popup)
+        layout = QVBoxLayout()
 
-        # Horizontal spacer to keep the title and buttons apart
-        spacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
-
-        layout = QHBoxLayout()
-
-        layout.addWidget(title)
-        layout.addItem(spacer)
-        layout.addWidget(import_csv_btn)
-        layout.addWidget(add_employee_btn)
+        layout.addWidget(self.title)
+        layout.addWidget(subtitle)
+        layout.addWidget(line)
 
         return layout
 
@@ -67,54 +83,79 @@ class EmployeesTab(QWidget):
 
         return search_bar
 
+    def _create_buttons(self) -> QHBoxLayout:
+        layout = QHBoxLayout()
+
+        import_btn = QPushButton("Import Employees")
+        import_btn.clicked.connect(self._open_import_employees_window)
+
+        add_btn = QPushButton("Add Employee")
+        add_btn.clicked.connect(self._open_add_employee_window)
+
+        spacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        layout.addItem(spacer)
+        layout.addWidget(import_btn)
+        layout.addWidget(add_btn)
+
+        return layout
+
     def launch_window(self, title: str, widget: QWidget, w: int = None, h: int = None):
-        self.popup = QWidget()
+        self.window_popup = QWidget()
 
         if w and h:
-            self.popup.setMinimumWidth(w)
-            self.popup.setMinimumHeight(h)
+            self.window_popup.setMinimumWidth(w)
+            self.window_popup.setMinimumHeight(h)
 
         container = QVBoxLayout()
         container.addWidget(widget)
 
-        self.popup.setWindowTitle(title)
-        self.popup.setLayout(container)
-        self.popup.show()
+        self.window_popup.setWindowTitle(title)
+        self.window_popup.setLayout(container)
+        self.window_popup.show()
 
     @Slot()
-    def add_employee_popup(self):
+    def _open_add_employee_window(self):
         employee = backend.create_empty_employee()
 
         editor = EmployeeEditor(employee, EditorMode.CREATE)
-        editor.EMPLOYEE_UPDATED.connect(self.refresh_table)
-        editor.DONE.connect(self.close_popup)
+        editor.EMPLOYEE_UPDATED.connect(self.refresh_tab)
+        editor.DONE.connect(self.close_window_popup)
 
         self.launch_window("Add Employee", editor)
 
     @Slot(int, int)
-    def edit_employee_popup(self, row, col):
+    def _open_edit_employee_window(self, row, col):
         employee = self.table.get_employee_from_row(row)
 
         editor = EmployeeEditor(employee, EditorMode.EDIT)
-        editor.EMPLOYEE_UPDATED.connect(self.refresh_table)
-        editor.DONE.connect(self.close_popup)
+        editor.EMPLOYEE_UPDATED.connect(self.refresh_tab)
+        editor.DONE.connect(self.close_window_popup)
 
         self.launch_window("Edit Employee", editor)
 
-    def import_csv_popup(self):
+    def _open_import_employees_window(self):
         importer = EmployeeImporter()
-        importer.EMPLOYEES_UPDATED.connect(self.refresh_table)
-        importer.DONE.connect(self.close_popup)
+        importer.EMPLOYEES_UPDATED.connect(self.refresh_tab)
+        importer.DONE.connect(self.close_window_popup)
 
         self.launch_window("Import Employees", importer, self.width(), self.height())
 
-    @Slot()
-    def close_popup(self):
-        if self.popup is not None:
-            self.popup.close()
-            self.popup = None
+    def clear_search_bar(self) -> None:
+        self.search_bar.setText("")
+    
+    def _update_title(self, num_employees: int) -> None:
+        self.title.setText(f"Employees ({num_employees})")
 
     @Slot()
-    def refresh_table(self):
+    def close_window_popup(self):
+        if self.window_popup is not None:
+            self.window_popup.close()
+            self.window_popup = None
+
+    @Slot()
+    def refresh_tab(self):
         employees = backend.get_employees()
         self.table.populate_table(employees)
+        self._update_title(len(employees))
+        self.clear_search_bar()

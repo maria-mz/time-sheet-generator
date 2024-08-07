@@ -50,7 +50,7 @@ class EmployeeProfile(QWidget):
         )
 
     def _create_profile_box(self) -> QGroupBox:
-        box = QGroupBox("Employee Profile")
+        box = QGroupBox("Employee Details")
 
         grid = QGridLayout()
 

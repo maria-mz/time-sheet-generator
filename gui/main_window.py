@@ -26,13 +26,7 @@ class MainWindow(QMainWindow):
 
         tabs = QTabWidget(self)
 
-        pay_period = backend.get_pay_period()
-
-        if pay_period is None:
-            start_date = datetime.datetime.now().date()
-            end_date = utils.next_date(start_date, constants.PAY_PERIOD_DAYS - 1)
-
-            pay_period = PayPeriod(start_date, end_date)
+        pay_period = self.get_pay_period()
 
         self.settings_tab = SettingsTab(pay_period)
 
@@ -63,7 +57,7 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def _on_save_update_table(self) -> None:
-        self.employees_tab.refresh_table()
+        self.employees_tab.refresh_tab()
 
     @Slot(int)
     def _on_tab_changed(self, index: int) -> None:
