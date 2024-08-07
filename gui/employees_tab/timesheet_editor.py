@@ -13,9 +13,10 @@ from PySide6.QtWidgets import (
     QGroupBox,
     QComboBox,
     QStackedLayout,
-    QSizePolicy
+    QSizePolicy,
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QRegularExpression
+from PySide6.QtGui import QRegularExpressionValidator
 
 from gui import qutils
 from db.db_data import Employee, Shift
@@ -35,6 +36,7 @@ class QShift:
     time_out_field: QTimeEdit
     hours_reg_field: QLineEdit
     hours_ot_field: QLineEdit
+
 
 @dataclass
 class TimesheetView:
@@ -147,6 +149,15 @@ class TimesheetEditor(QWidget):
         hours_reg_field = QLineEdit(shift.hours_reg)
         hours_ot_field = QLineEdit(shift.hours_ot)
 
+        hours_reg_field.setValidator(self._create_hours_validator())
+        hours_ot_field.setValidator(self._create_hours_validator())
+
+        hours_reg_field_formatter = self._get_hours_formatter(hours_reg_field)
+        hours_ot_field_formatter = self._get_hours_formatter(hours_ot_field)
+
+        hours_reg_field.editingFinished.connect(hours_reg_field_formatter)
+        hours_ot_field.editingFinished.connect(hours_ot_field_formatter)
+
         return QShift(
             date=shift.date,
             date_label=date_label,
@@ -155,6 +166,18 @@ class TimesheetEditor(QWidget):
             hours_reg_field=hours_reg_field,
             hours_ot_field=hours_ot_field
         )
+
+    def _create_hours_validator(self) -> QRegularExpressionValidator:
+        regex = QRegularExpression("^\d{0,2}(\.\d{0,2})?$")
+        return QRegularExpressionValidator(regex)
+
+    def _get_hours_formatter(self, edit: QLineEdit) -> None:
+        def formatter():
+            hours = edit.text()
+            formatted_hours = "0.00" if hours in {"", "."} else "{:.2f}".format(float(hours))
+            edit.setText(formatted_hours)
+
+        return formatter
 
     def _create_timesheet_box(self, timesheet_view: TimesheetView) -> QGroupBox:
         """
