@@ -3,13 +3,16 @@ from PySide6.QtWidgets import (
     QWidget,
     QLabel,
     QVBoxLayout,
-    QHBoxLayout,
+    QGridLayout,
     QDateEdit,
     QPushButton,
     QMessageBox,
+    QSizePolicy,
+    QGroupBox,
     QFrame
 )
 from PySide6.QtCore import QDate, Qt, Signal, Slot
+from PySide6.QtGui import QFont
 
 import gui.constants
 from gui import qutils
@@ -30,15 +33,98 @@ class QPayPeriod:
 class SettingsTab(QWidget):
     PAY_PERIOD_UPDATED = Signal()
 
-    def __init__(self, pay_period: QPayPeriod):
+    def __init__(self, pay_period: PayPeriod):
         super().__init__()
-
-        self.widget = QWidget()
 
         self.q_pay_period = self._create_q_pay_period(pay_period)
 
-        layout = self.create_layout()
+        layout = self._create_main_layout()
+
         self.setLayout(layout)
+
+    def _create_main_layout(self) -> QVBoxLayout:
+        layout = QVBoxLayout()
+
+        title = QLabel("Settings")
+        title.setStyleSheet(f"font-weight: {QFont.Weight.Bold}; font-size: 24px")
+        subtitle = QLabel("Update the pay period here and view the default timesheet values.")
+
+        line = QFrame()
+        line.setFrameShape(QFrame.HLine)
+        line.setFrameShadow(QFrame.Sunken)
+
+        boxes_layout = self._create_boxes_layout()
+
+        update_btn = QPushButton("Update")
+        update_btn.clicked.connect(self._on_update)
+
+        layout.addWidget(title, alignment=Qt.AlignLeft)
+        layout.addWidget(subtitle, alignment=Qt.AlignLeft)
+        layout.addWidget(line)
+        layout.addLayout(boxes_layout)
+        layout.addWidget(update_btn, alignment=Qt.AlignRight)
+
+        layout.setAlignment(Qt.AlignTop)
+
+        return layout
+
+    def _create_boxes_layout(self) -> QVBoxLayout:
+        layout = QVBoxLayout()
+        layout.setSpacing(32)
+
+        default_values_box = self._create_default_values_box()
+        pay_period_box = self._create_pay_period_box()
+
+        layout.addWidget(default_values_box)
+        layout.addWidget(pay_period_box)
+
+        return layout
+
+    def _create_default_values_box(self) -> QGroupBox:
+        box = QGroupBox("Default Values")
+
+        grid = QGridLayout()
+        grid.setSpacing(16)
+
+        rows = [
+            ("Default time in", constants.DEFAULT_TIME_IN.strftime("%I:%M %p")),
+            ("Default time out", constants.DEFAULT_TIME_IN.strftime("%I:%M %p")),
+            ("Default regular hours", constants.DEFAULT_HOURS_REG),
+            ("Default overtime hours", constants.DEFAULT_HOURS_OT)
+        ]
+
+        for i, row in enumerate(rows):
+            field, value = row
+            grid.addWidget(self._create_settings_field_label(field), i, 0)
+            grid.addWidget(QLabel(value), i, 1, Qt.AlignRight)
+
+        box.setLayout(grid)
+
+        return box
+
+    def _create_pay_period_box(self) -> QGroupBox:
+        box = QGroupBox(f"Pay Period ({constants.PAY_PERIOD_DAYS} days)")
+
+        grid = QGridLayout()
+
+        start_date_label = self._create_settings_field_label("Start date")
+        end_date_label = self._create_settings_field_label("End date")
+
+        grid.addWidget(start_date_label, 0, 0)
+        grid.addWidget(self.q_pay_period.start_date_edit, 0, 1, Qt.AlignRight)
+        grid.addWidget(end_date_label, 1, 0)
+        grid.addWidget(self.q_pay_period.end_date_edit, 1, 1, Qt.AlignRight)
+
+        box.setLayout(grid)
+
+        return box
+
+    def _create_settings_field_label(self, text: str) -> QLabel:
+        label = QLabel(text)
+        label.setStyleSheet(f"font-weight: {QFont.Weight.Medium};")
+        label.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+
+        return label
 
     def _create_q_pay_period(self, pay_period: PayPeriod) -> QPayPeriod:
         start_date_edit = QDateEdit()
@@ -48,48 +134,14 @@ class SettingsTab(QWidget):
         start_date_edit.userDateChanged.connect(self._on_start_date_changed)
 
         end_date_edit = QDateEdit()
-        end_date_edit.setCalendarPopup(False)
-        end_date_edit.setEnabled(False)
+        end_date_edit.setCalendarPopup(True)
         end_date_edit.setFixedWidth(200)
+        end_date_edit.setEnabled(False)
         end_date_edit.setDate(qutils.date_to_qdate(pay_period.end_date))
 
         return QPayPeriod(
             start_date_edit=start_date_edit, end_date_edit=end_date_edit
         )
-
-    def create_layout(self) -> QVBoxLayout:
-        base_layout = QVBoxLayout()
-
-        title = QLabel("Pay Period")
-        title.setStyleSheet("font-weight: bold; font-size: 24px")
-
-        base_layout.addWidget(title, alignment=Qt.AlignLeft)
-
-        line = QFrame()
-        line.setFrameShape(QFrame.HLine)
-        line.setFrameShadow(QFrame.Sunken)
-
-        base_layout.addWidget(line)
-
-        start_date_layout = QHBoxLayout()
-        start_date_layout.addWidget(QLabel("Start Date"))
-        start_date_layout.addWidget(self.q_pay_period.start_date_edit)
-
-        end_date_layout = QHBoxLayout()
-        end_date_layout.addWidget(QLabel("End Date"))
-        end_date_layout.addWidget(self.q_pay_period.end_date_edit)
-
-        update_btn = QPushButton("Update")
-        update_btn.clicked.connect(self._on_update)
-
-        base_layout.addLayout(start_date_layout)
-        base_layout.addLayout(end_date_layout)
-
-        base_layout.addWidget(update_btn, 0, Qt.AlignRight)
-        base_layout.setSpacing(12)
-        base_layout.setAlignment(Qt.AlignCenter)
-
-        return base_layout
 
     @Slot(QDate)
     def _on_start_date_changed(self, date: QDate):

@@ -42,9 +42,9 @@ class MainWindow(QMainWindow):
         export_tab = QWidget() # TODO
 
         # Add tabs to widget
-        tabs.addTab(self.settings_tab, "Pay Period")
+        tabs.addTab(self.settings_tab, "Settings")
         tabs.addTab(self.employees_tab, "Employees")
-        tabs.addTab(export_tab, "Export")
+        tabs.addTab(export_tab, "Report")
 
         self.setCentralWidget(tabs)
 
