@@ -4,19 +4,21 @@ from PySide6.QtWidgets import (
     QLabel,
     QVBoxLayout,
     QHBoxLayout,
+    QGroupBox,
     QAbstractItemView,
     QPushButton,
     QFileDialog
 )
 from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QCursor
 
 import gui.constants
 from gui import qutils
 from gui.employees_tab.employees_table import EmployeesTable
 
-from db.db_handler import EmployeeAlreadyExistsError
 from backend.backend import backend
 from backend.errors import CSVReadError, InternalError
+from db.db_handler import EmployeeAlreadyExistsError
 
 
 class EmployeeImporter(QWidget):
@@ -30,6 +32,7 @@ class EmployeeImporter(QWidget):
         self.filename_label = QLabel("No file chosen")
 
         self.preview_table = EmployeesTable()
+        self.preview_table.setCursor(QCursor(Qt.ForbiddenCursor))
         self.preview_table.setSelectionMode(QAbstractItemView.NoSelection)
 
         self.import_btn = QPushButton("Import Employees")
@@ -41,15 +44,15 @@ class EmployeeImporter(QWidget):
         self.setLayout(layout)
 
     def _create_layout(self) -> QVBoxLayout:
-        import_csv_label = QLabel("Import CSV")
-        import_csv_label.setStyleSheet("font-weight: bold;")
+        import_csv_label = QLabel("File")
+        import_csv_label.setStyleSheet("font-weight: bold; font-size: 16px")
 
         instr = self._create_instructions()
 
         file_chooser = self._create_file_chooser()
 
         preview_label = QLabel("Preview")
-        preview_label.setStyleSheet("font-weight: bold;")
+        preview_label.setStyleSheet("font-weight: bold; font-size: 16px")
 
         bottom_buttons_row = self._create_bottom_buttons_row()
 
@@ -57,7 +60,7 @@ class EmployeeImporter(QWidget):
 
         layout.addWidget(import_csv_label)
         layout.addWidget(instr)
-        layout.addLayout(file_chooser)
+        layout.addWidget(file_chooser)
         layout.addWidget(preview_label)
         layout.addWidget(self.preview_table)
         layout.addLayout(bottom_buttons_row)
@@ -69,17 +72,27 @@ class EmployeeImporter(QWidget):
     def _create_instructions(self) -> QLabel:
         instr = QLabel()
         instr.setText(
-            "Import employees from a .csv file. The first row of the file " + \
-            "must contain the column headers. Columns should at least include: " + \
-            "<i>First Name</i>, <i>Last Name</i>, <i>Employee No</i>, " + \
-            "<i>Job Title</i>, and <i>Contract</i>."
+            "Import employees from a .csv file. <b>The first row of the " + \
+            "file must be the header row</b>. The header column names " + \
+            "should include the following:" + \
+            "<ul>" + \
+            "<li>First Name</li>" + \
+            "<li>Last Name</li>" + \
+            "<li>Employee No</li>" + \
+            "<li>Job Title</li>" + \
+            "<li>Contract</li>" + \
+            "</ul>" + \
+            "The timesheet information will be populated automatically " + \
+            "with the default values."
         )
         instr.setTextFormat(Qt.TextFormat.RichText)
         instr.setWordWrap(True)
 
         return instr
 
-    def _create_file_chooser(self) -> QHBoxLayout:
+    def _create_file_chooser(self) -> QGroupBox:
+        box = QGroupBox()
+
         choose_file_btn = QPushButton("Choose File")
         choose_file_btn.clicked.connect(self._on_choose_file)
 
@@ -89,7 +102,9 @@ class EmployeeImporter(QWidget):
         layout.addWidget(self.filename_label)
         layout.setAlignment(Qt.AlignLeft)
 
-        return layout
+        box.setLayout(layout)
+
+        return box
 
     def _create_bottom_buttons_row(self) -> QHBoxLayout:
         cancel_btn = QPushButton("Cancel")
@@ -121,17 +136,23 @@ class EmployeeImporter(QWidget):
 
         try:
             self.employees = backend.generate_employees_from_csv(file_path)
+
         except CSVReadError as e:
+            self.filename_label.setStyleSheet("color: red;")
             dialog = qutils.create_error_dialog("Read failed.", str(e))
             dialog.exec()
+
         except InternalError as e:
+            self.filename_label.setStyleSheet("color: red;")
             dialog = qutils.create_error_dialog(gui.constants.INTERNAL_ERR_MSG)
             dialog.exec()
+
         else:
             if len(self.employees) > 0:
                 self.import_btn.setEnabled(True)
                 self.preview_table.populate_table(self.employees)
 
+            self.filename_label.setStyleSheet("color: green;")
             dialog = qutils.create_info_dialog("Read successful.")
             dialog.exec()
 
@@ -141,6 +162,7 @@ class EmployeeImporter(QWidget):
         response = QFileDialog.getOpenFileName(
             parent=self,
             caption="Select a file",
+            # dir=os.path.expanduser("~"), # uncomment when creating the .exe, gives home dir
             dir=os.getcwd(),
             filter=file_filter
         )
