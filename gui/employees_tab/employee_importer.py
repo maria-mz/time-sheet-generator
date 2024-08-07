@@ -71,7 +71,8 @@ class EmployeeImporter(QWidget):
         instr.setText(
             "Import employees from a .csv file. The first row of the file " + \
             "must contain the column headers. Columns should at least include: " + \
-            "<i>Full Name</i>, <i>Employee Number</i>, and <i>Job Title</i>."
+            "<i>First Name</i>, <i>Last Name</i>, <i>Employee No</i>, " + \
+            "<i>Job Title</i>, and <i>Contract</i>."
         )
         instr.setTextFormat(Qt.TextFormat.RichText)
         instr.setWordWrap(True)

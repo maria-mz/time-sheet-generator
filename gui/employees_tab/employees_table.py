@@ -10,7 +10,7 @@ from PySide6.QtCore import Qt
 from db.db_data import Employee
 
 
-HEADER_LABELS = ["Full Name", "Employee Number", "Job Title"]
+HEADER_LABELS = ["First Name", "Last Name", "Employee No", "Job Title", "Contract"]
 
 
 class EmployeesTable(QTableWidget):
@@ -38,9 +38,11 @@ class EmployeesTable(QTableWidget):
             self.insertRow(row)
 
             profile_items = [
-                employee.full_name,
+                employee.first_name,
+                employee.last_name,
                 employee.employee_id,
                 employee.position,
+                employee.contract
             ]
 
             for col, profile_item in enumerate(profile_items):

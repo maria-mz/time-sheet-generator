@@ -3,7 +3,6 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QHBoxLayout,
     QPushButton,
-    QFrame,
     QSizePolicy,
     QSpacerItem,
     QMessageBox
@@ -37,27 +36,15 @@ class EmployeeEditor(QWidget):
         self.setLayout(layout)
 
     def _create_layout(self) -> QVBoxLayout:
-        line1 = self._create_sunken_hline()
-        line2 = self._create_sunken_hline()
-
         bottom_buttons_row = self._create_bottom_buttons_row()
  
         layout = QVBoxLayout()
 
         layout.addWidget(self.profile_widget)
-        layout.addWidget(line1)
         layout.addWidget(self.timesheet_editor)
-        layout.addWidget(line2)
         layout.addLayout(bottom_buttons_row)
 
         return layout
-
-    def _create_sunken_hline(self) -> QFrame:
-        line = QFrame()
-        line.setFrameShape(QFrame.HLine)
-        line.setFrameShadow(QFrame.Sunken)
-
-        return line
 
     def _create_bottom_buttons_row(self) -> QHBoxLayout:
         layout = QHBoxLayout()
@@ -124,14 +111,11 @@ class EmployeeEditor(QWidget):
         self.DONE.emit()
 
     def _extract_employee(self) -> Employee:
-        employee_id = self.profile_widget.get_employee_id()
-        full_name = self.profile_widget.get_full_name()
-        position = self.profile_widget.get_position()
-        shifts = self.timesheet_editor.get_shifts()
-
         return Employee(
-            employee_id=employee_id,
-            full_name=full_name,
-            position=position,
-            shifts=shifts
+            employee_id=self.profile_widget.employee_id(),
+            first_name=self.profile_widget.first_name(),
+            last_name=self.profile_widget.last_name(),
+            position=self.profile_widget.position(),
+            contract=self.profile_widget.contract(),
+            shifts=self.timesheet_editor.get_shifts()
         )

@@ -92,29 +92,29 @@ class Backend:
         except pd.errors.ParserError:
             raise CSVReadError("Error parsing file.")
 
-        required_cols = {"Full Name", "Employee Number", "Job Title"}
+        required_cols = {"First Name", "Last Name", "Employee No", "Job Title", "Contract"}
 
         if missing_cols := required_cols - set(df.columns):
             raise CSVReadError(f"File is missing header columns: {missing_cols}")
 
-        def row_to_employee(row) -> Employee:
-            employee_id = str(row["Employee Number"]) if not pd.isna(row["Employee Number"]) else ""
-            full_name = str(row["Full Name"]) if not pd.isna(row["Full Name"]) else ""
-            position = str(row["Job Title"]) if not pd.isna(row["Job Title"]) else ""
-            shifts = self._get_fresh_shifts()
+        def format_value(value) -> str:
+            return str(value) if not pd.isna(value) else ""
 
+        def row_to_employee(row) -> Employee:
             return Employee(
-                employee_id=employee_id,
-                full_name=full_name,
-                position=position,
-                shifts=shifts
+                employee_id=format_value(row["Employee No"]),
+                first_name=format_value(row["First Name"]),
+                last_name=format_value(row["Last Name"]),
+                position=format_value(row["Job Title"]),
+                contract=format_value(row["Contract"]),
+                shifts=self._get_default_shifts()
             )
 
         employees = df.apply(row_to_employee, axis=1).tolist()
 
         return employees
 
-    def _get_fresh_shifts(self) -> list[Shift]:
+    def _get_default_shifts(self) -> list[Shift]:
         pay_period = self.db_handler.get_pay_period()
 
         if pay_period is None:
@@ -128,9 +128,11 @@ class Backend:
     def create_empty_employee(self) -> Employee:
         return Employee(
             employee_id="",
-            full_name="",
+            first_name="",
+            last_name="",
             position="",
-            shifts=self._get_fresh_shifts()
+            contract="",
+            shifts=self._get_default_shifts()
         )
 
     def shutdown(self) -> None:

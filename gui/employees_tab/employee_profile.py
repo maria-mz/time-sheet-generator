@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (
     QGroupBox,
     QGridLayout
 )
-from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont
 
 from db.db_data import Employee
 
@@ -16,8 +16,10 @@ from db.db_data import Employee
 @dataclass
 class QProfile:
     id_edit: QLineEdit
-    name_edit: QLineEdit
+    first_name_edit: QLineEdit
+    last_name_edit: QLineEdit
     position_edit: QLineEdit
+    contract_edit: QLineEdit
 
 
 class EmployeeProfile(QWidget):
@@ -34,13 +36,17 @@ class EmployeeProfile(QWidget):
 
     def _create_qprofile(self, employee: Employee) -> QProfile:
         id_edit = QLineEdit(employee.employee_id)
-        name_edit = QLineEdit(employee.full_name)
+        first_name_edit = QLineEdit(employee.first_name)
+        last_name_edit = QLineEdit(employee.last_name)
         position_edit = QLineEdit(employee.position)
+        contract_edit = QLineEdit(employee.contract)
 
         return QProfile(
             id_edit=id_edit,
-            name_edit=name_edit,
-            position_edit=position_edit
+            first_name_edit=first_name_edit,
+            last_name_edit=last_name_edit,
+            position_edit=position_edit,
+            contract_edit=contract_edit
         )
 
     def _create_profile_box(self) -> QGroupBox:
@@ -48,33 +54,42 @@ class EmployeeProfile(QWidget):
 
         grid = QGridLayout()
 
-        name_label = QLabel("Full Name")
-        id_label = QLabel("Employee #")
-        position_label = QLabel("Job Title")
-    
-        grid.addWidget(name_label, 0, 0)
-        grid.addWidget(self._qprofile.name_edit, 0, 1)
-        grid.addWidget(id_label, 0, 2)
-        grid.addWidget(self._qprofile.id_edit, 0, 3)
-        grid.addWidget(position_label, 1, 0)
-        grid.addWidget(self._qprofile.position_edit, 1, 1)
+        grid.addWidget(self._create_field_label("First Name"), 0, 0)
+        grid.addWidget(self._create_field_label("Last Name"), 0, 2)
+        grid.addWidget(self._create_field_label("Employee No"), 1, 2)
+        grid.addWidget(self._create_field_label("Job Title"), 2, 0)
+        grid.addWidget(self._create_field_label("Contract"), 2, 2)
 
-        container = QVBoxLayout()
-        container.addLayout(grid)
-        container.setAlignment(Qt.AlignTop)
+        grid.addWidget(self._qprofile.first_name_edit, 0, 1)
+        grid.addWidget(self._qprofile.last_name_edit, 0, 3)
+        grid.addWidget(self._qprofile.id_edit, 1, 3)
+        grid.addWidget(self._qprofile.position_edit, 2, 1)
+        grid.addWidget(self._qprofile.contract_edit, 2, 3)
 
-        box.setLayout(container)
+        box.setLayout(grid)
 
         return box
 
-    def get_full_name(self) -> str:
-        return self._qprofile.name_edit.text()
+    def _create_field_label(self, text: str) -> QLabel:
+        label = QLabel(text)
+        label.setStyleSheet(f"font-weight: {QFont.Weight.Medium};")
 
-    def get_employee_id(self) -> str:
+        return label
+
+    def first_name(self) -> str:
+        return self._qprofile.first_name_edit.text()
+
+    def last_name(self) -> str:
+        return self._qprofile.last_name_edit.text()
+
+    def employee_id(self) -> str:
         return self._qprofile.id_edit.text()
 
-    def get_position(self) -> str:
+    def position(self) -> str:
         return self._qprofile.position_edit.text()
+
+    def contract(self) -> str:
+        return self._qprofile.contract_edit.text()
 
     def set_id_editable(self, editable: bool) -> None:
         self._qprofile.id_edit.setEnabled(editable)

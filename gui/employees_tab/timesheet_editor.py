@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
     QSizePolicy,
 )
 from PySide6.QtCore import Qt, QRegularExpression
-from PySide6.QtGui import QRegularExpressionValidator
+from PySide6.QtGui import QRegularExpressionValidator, QFont
 
 from gui import qutils
 from db.db_data import Employee, Shift
@@ -60,11 +60,10 @@ class TimesheetEditor(QWidget):
         self.timesheet_views = self._build_timesheet_views(employee.shifts)
         self.timesheet_layout = self._create_timesheet_layout()
 
-        dropdown = self._create_dropdown(self.timesheet_views)
+        timesheet_box = self._create_timesheet_box()
 
         layout = QVBoxLayout()
-        layout.addWidget(dropdown, alignment=Qt.AlignLeft)
-        layout.addLayout(self.timesheet_layout)
+        layout.addWidget(timesheet_box)
         layout.setAlignment(Qt.AlignLeft)
 
         container = QVBoxLayout()
@@ -122,7 +121,7 @@ class TimesheetEditor(QWidget):
         layout = QStackedLayout()
 
         for timesheet_view in self.timesheet_views:
-            timesheet_box = self._create_timesheet_box(timesheet_view)
+            timesheet_box = self._create_timesheet_widget(timesheet_view)
             layout.addWidget(timesheet_box)
 
         return layout
@@ -138,7 +137,7 @@ class TimesheetEditor(QWidget):
         Turn a Shift into the corresponding QShift.
         """
         date_label = QLabel(str(shift.date))
-        date_label.setContentsMargins(0, 0, 50, 0)
+        date_label.setContentsMargins(0, 0, 24, 0)
 
         time_in_field = QTimeEdit(qutils.time_to_qtime(shift.time_in))
         time_out_field = QTimeEdit(qutils.time_to_qtime(shift.time_out))
@@ -179,11 +178,11 @@ class TimesheetEditor(QWidget):
 
         return formatter
 
-    def _create_timesheet_box(self, timesheet_view: TimesheetView) -> QGroupBox:
+    def _create_timesheet_widget(self, timesheet_view: TimesheetView) -> QWidget:
         """
         Creates a widget showing the timesheet view.
         """
-        box = QGroupBox("Time Sheet")
+        widget = QWidget()
 
         grid = QGridLayout()
 
@@ -191,7 +190,7 @@ class TimesheetEditor(QWidget):
 
         for i, title in enumerate(titles):
             title_label = QLabel(title)
-            title_label.setStyleSheet("font-weight: bold;")
+            title_label.setStyleSheet(f"font-weight: {QFont.Weight.Medium};")
             grid.addWidget(title_label, 0, i)
 
         for i, qshift in enumerate(timesheet_view.qshifts):
@@ -207,7 +206,20 @@ class TimesheetEditor(QWidget):
         # don't "stretch" when window is expanded vertically
         grid.setAlignment(Qt.AlignTop)
 
-        box.setLayout(grid)
+        widget.setLayout(grid)
+
+        return widget
+
+    def _create_timesheet_box(self) -> QGroupBox:
+        box = QGroupBox("Timesheet")
+
+        dropdown = self._create_dropdown(self.timesheet_views)
+
+        layout = QVBoxLayout()
+        layout.addWidget(dropdown)
+        layout.addLayout(self.timesheet_layout)
+
+        box.setLayout(layout)
 
         return box
 

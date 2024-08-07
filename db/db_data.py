@@ -33,6 +33,8 @@ class Employee:
     Employee table row data and their shifts.
     """
     employee_id: str
-    full_name: str
+    first_name: str
+    last_name: str
     position: str
+    contract: str
     shifts: list[Shift]

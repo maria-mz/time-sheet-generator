@@ -49,8 +49,10 @@ class DatabaseHandler:
             """
             CREATE TABLE IF NOT EXISTS employee(
                 employee_id TEXT PRIMARY KEY,
-                full_name TEXT,
-                position TEXT
+                first_name TEXT,
+                last_name TEXT,
+                position TEXT,
+                contract TEXT
             )
             """
         )
@@ -134,15 +136,17 @@ class DatabaseHandler:
         )
 
     def get_employees(self) -> list[Employee]:
-        rows = self.cur.execute(f"SELECT * FROM employee ORDER BY full_name").fetchall()
+        rows = self.cur.execute(f"SELECT * FROM employee ORDER BY first_name").fetchall()
 
         employees = []
 
         for row in rows:
             employee = Employee(
                 employee_id=row[0],
-                full_name=row[1],
-                position=row[2],
+                first_name=row[1],
+                last_name=row[2],
+                position=row[3],
+                contract=row[4],
                 shifts=[]
             )
 
@@ -166,8 +170,10 @@ class DatabaseHandler:
 
         return Employee(
             employee_id=employee_id,
-            full_name=row[1],
-            position=row[2],
+            first_name=row[1],
+            last_name=row[2],
+            position=row[3],
+            contract=row[4],
             shifts=self._get_shifts(employee_id)
         )
 
@@ -176,7 +182,7 @@ class DatabaseHandler:
         Add a new employee. If there is already an employee with the same id,
         raises EmployeeAlreadyExistsError.
         """
-        v = f"'{employee.employee_id}', '{employee.full_name}', '{employee.position}'"
+        v = f"'{employee.employee_id}', '{employee.first_name}', '{employee.last_name}', '{employee.position}', '{employee.contract}'"
 
         try:
             self.cur.execute(f"INSERT INTO employee VALUES ({v})")
@@ -205,8 +211,10 @@ class DatabaseHandler:
         """
         self.cur.execute(
             f"UPDATE employee SET \
-            full_name='{employee.full_name}', \
-            position='{employee.position}' \
+            first_name='{employee.first_name}', \
+            last_name='{employee.last_name}', \
+            position='{employee.position}', \
+            contract='{employee.contract}' \
             WHERE employee_id='{employee.employee_id}'"
         )
 
