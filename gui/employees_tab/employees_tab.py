@@ -11,8 +11,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Slot
 
 from gui.employees_tab.employees_table import EmployeesTable
-from gui.employees_tab.employee_editor import EmployeeEditor
-from gui.employees_tab.employee_creator import EmployeeCreator
+from gui.employees_tab.employee_editor import EmployeeEditor, EditorMode
 from gui.employees_tab.employee_importer import EmployeeImporter
 
 from backend.backend import backend
@@ -86,7 +85,7 @@ class EmployeesTab(QWidget):
     def add_employee_popup(self):
         employee = backend.create_empty_employee()
 
-        editor = EmployeeCreator(employee)
+        editor = EmployeeEditor(employee, EditorMode.CREATE)
         editor.EMPLOYEE_UPDATED.connect(self.refresh_table)
         editor.DONE.connect(self.close_popup)
 
@@ -96,7 +95,7 @@ class EmployeesTab(QWidget):
     def edit_employee_popup(self, row, col):
         employee = self.table.get_employee_from_row(row)
 
-        editor = EmployeeEditor(employee)
+        editor = EmployeeEditor(employee, EditorMode.EDIT)
         editor.EMPLOYEE_UPDATED.connect(self.refresh_table)
         editor.DONE.connect(self.close_popup)
 

@@ -19,10 +19,8 @@ class EmployeesTable(QTableWidget):
         self.employees = []
 
         self.setColumnCount(len(HEADER_LABELS))
-
-        self.setSelectionBehavior(QAbstractItemView.SelectRows)
-
         self.setHorizontalHeaderLabels(HEADER_LABELS)
+        self.setSelectionBehavior(QAbstractItemView.SelectRows)
 
         # Set all columns to stretch
         for i in range(len(HEADER_LABELS)):
