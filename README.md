@@ -1,9 +1,9 @@
 # Timesheet Generator
 
-A tool for logging employee hours and generating timesheet reports. (Features are developed as requested by client.)
+A tool for logging employee hours and generating PDF timesheet reports. (Features are developed as requested by client.)
 
 
-## Supported features
+## Supported Features
 
 - Update the pay period. This will delete all the current employee data.
 - View all employees in a table format. 
@@ -44,7 +44,7 @@ Edit employee details and timesheet information here. Click an employee to open 
 ![](images/employee-editor-screenshot.png)
 
 
-### 'Import Employees' Window
+### `Import Employees` Window
 
 Import employees from a .csv file.
 
