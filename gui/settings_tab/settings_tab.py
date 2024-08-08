@@ -92,7 +92,7 @@ class SettingsTab(QWidget):
 
         rows = [
             ("Default time in", constants.DEFAULT_TIME_IN.strftime("%I:%M %p")),
-            ("Default time out", constants.DEFAULT_TIME_IN.strftime("%I:%M %p")),
+            ("Default time out", constants.DEFAULT_TIME_OUT.strftime("%I:%M %p")),
             ("Default regular hours", constants.DEFAULT_HOURS_REG),
             ("Default overtime hours", constants.DEFAULT_HOURS_OT)
         ]
