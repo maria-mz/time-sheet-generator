@@ -40,13 +40,7 @@ class Backend:
 
         self.db_handler.update_pay_period(pay_period)
 
-        self.db_handler.delete_shift_table()
-        self.db_handler.delete_employee_table()
-
-        self.db_handler.create_shift_table()
-        self.db_handler.create_employee_table()
-
-        self.db_handler.commit()
+        self._clear_employee_data()
 
         _logger.info(f"pay period updated!")
 
@@ -73,6 +67,19 @@ class Backend:
     @error_handler
     def delete_employee(self, employee: Employee) -> None:
         self.db_handler.delete_employee(employee.employee_id)
+        self.db_handler.commit()
+
+    @error_handler
+    def delete_employees(self) -> None:
+        self._clear_employee_data()
+
+    def _clear_employee_data(self) -> None:
+        self.db_handler.delete_shift_table()
+        self.db_handler.delete_employee_table()
+
+        self.db_handler.create_shift_table()
+        self.db_handler.create_employee_table()
+
         self.db_handler.commit()
 
     @error_handler

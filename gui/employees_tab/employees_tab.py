@@ -7,15 +7,19 @@ from PySide6.QtWidgets import (
     QLabel,
     QSpacerItem,
     QSizePolicy,
+    QMessageBox,
     QFrame
 )
 from PySide6.QtCore import Slot
 
+import gui.constants
+from gui import qutils
 from gui.employees_tab.employees_table import EmployeesTable
 from gui.employees_tab.employee_editor import EmployeeEditor, EditorMode
 from gui.employees_tab.employee_importer import EmployeeImporter
 
 from backend.backend import backend
+from backend.errors import InternalError
 
 
 class EmployeesTab(QWidget):
@@ -86,6 +90,9 @@ class EmployeesTab(QWidget):
     def _create_buttons(self) -> QHBoxLayout:
         layout = QHBoxLayout()
 
+        delete_btn = QPushButton("Delete All Employees")
+        delete_btn.clicked.connect(self._delete_employees)
+
         import_btn = QPushButton("Import Employees")
         import_btn.clicked.connect(self._open_import_employees_window)
 
@@ -94,6 +101,7 @@ class EmployeesTab(QWidget):
 
         spacer = QSpacerItem(0, 0, QSizePolicy.Expanding, QSizePolicy.Minimum)
 
+        layout.addWidget(delete_btn)
         layout.addItem(spacer)
         layout.addWidget(import_btn)
         layout.addWidget(add_btn)
@@ -140,6 +148,24 @@ class EmployeesTab(QWidget):
         importer.DONE.connect(self.close_window_popup)
 
         self.launch_window("Import Employees", importer, self.width(), self.height())
+
+    def _delete_employees(self):
+        dialog = qutils.create_confirm_dialog("Delete all employees?", "This cannot be undone.")
+
+        choice = dialog.exec()
+
+        if choice != QMessageBox.Yes:
+            return
+
+        try:
+            backend.delete_employees()
+        except InternalError:
+            dialog = qutils.create_error_dialog(gui.constants.INTERNAL_ERR_MSG)
+            dialog.exec()
+        else:
+            self.refresh_tab()
+            dialog = qutils.create_info_dialog("Employees deleted.")
+            choice = dialog.exec()
 
     def clear_search_bar(self) -> None:
         self.search_bar.setText("")
