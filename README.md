@@ -1,41 +1,51 @@
-# Time Sheet Generator
+# Timesheet Generator
 
-A tool for logging employee hours and generating time sheet reports.
+A tool for logging employee hours and generating timesheet reports. (Features are developed as requested by client.)
+
 
 ## Supported features
 
-- Setting the start date for a new pay period. Applying a new date will dynamically update the values in the table. 
+- Update the pay period. This will delete all the current employee data.
 - View all employees in a table format. 
 - Search for an employee by name.
-- Edit employee details. 
-- Delete an employee. A warning message will pop up to confirm.
+- Edit employee details and timesheet information.
+- Delete an employee.
+- Delete all employees.
 - Add an employee.
 - Import employees from a .csv file.
 
-## Notable screens
 
-Please note the database included in this project contains fake data generated solely for the purpose of demonstration.
+## What's Left
 
-### Pay Period tab
+- `Report` Tab for generating and outputting the timesheet PDF.
 
-Set the start date for the pay period here.
 
-![](images/payperiod-screenshot.png)
+## Screens
 
-### Employees tab
+Employee details shown here are AI-generated.
 
-View the data here. Search for a specific employee using the search bar. Add a new employee via the 'Add Employee' button. Add many employees via the 'Import CSV' button. Edit an employee by clicking their entry in the table.
+
+### `Settings` Tab
+
+Update the pay period here and view the default timesheet values.
+
+![](images/settings-screenshot.png)
+
+
+### `Employees` Tab
+
+Edit employee details and timesheet information here. Click an employee to open the editor.
 
 ![](images/employees-screenshot.png)
 
-### 'Edit Employee' window
 
-Appears when an entry of the table is clicked. Can edit any of the fields here. To view another range of work days, select it via the dropdown menu.
+### `Edit Employee` Window
 
-![](images/editor-screenshot.png)
+![](images/employee-editor-screenshot.png)
 
-### 'Import Employees' window
 
-Import many employees at once by uploading a .csv file.
+### 'Import Employees' Window
 
-![](images/importer-screenshot.png)
+Import employees from a .csv file.
+
+![](images/employee-importer-screenshot.png)
