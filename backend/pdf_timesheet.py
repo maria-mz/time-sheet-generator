@@ -19,42 +19,6 @@ DEFAULT_FILENAME = "timesheet.pdf"
 
 
 @dataclass
-class PDFText:
-    """
-    Wrapper for ReportLab's PDF text object that holds extra details.
-
-    :param content: The text content.
-    :param x: The initial x-coordinate for the text.
-    :param y: The initial y-coordinate for the text.
-    :param font_size: The font size.
-    :param pdf_obj: ReportLab's PDF text object.
-    """
-    content: str
-    x: int
-    y: int
-    font_size: int
-    pdf_obj: textobject.PDFTextObject
-
-
-@dataclass
-class PDFBorderedText:
-    """
-    Represents a text object with a surrounding border.
-
-    :param text: The PDF text object.
-    :param x: The x-coordinate for the border.
-    :param y: The y-coordinate for the border.
-    :param width: The width of the border.
-    :param height: The height of the border.
-    """
-    text: PDFText
-    x: int
-    y: int
-    width: int
-    height: int
-
-
-@dataclass
 class PDFTimesheetTable:
     """
     Represents a (weekly) timesheet table.
@@ -88,39 +52,26 @@ class PDFTimesheet:
         self._y = PAGE_HEIGHT - units.inch
 
         self._draw_header()
-        self._y -= (2 * units.cm)
+        self._y -= (1.5 * units.cm)
         self._draw_employees(employees)
 
 
-    def _create_pdf_text(
+    def _draw_text(
         self,
-        content: str,
+        text: str,
         x: int,
         y: int,
         font: str = FONT,
         font_size: int = 12,
-    ) -> PDFText:
-        """
-        Creates a PDFText object.
-        """
-        pdf_obj = self._pdf.beginText(x, y)
-        pdf_obj.setFont(font, font_size)
-        pdf_obj.textLine(content)
-
-        return PDFText(
-            content=content,
-            x=x,
-            y=y,
-            font_size=font_size,
-            pdf_obj=pdf_obj
-        )
-
-
-    def _draw_text(self, text: PDFText) -> None:
+    ) -> None:
         """
         Draws text on the current page.
         """
-        self._pdf.drawText(text.pdf_obj)
+        text_obj = self._pdf.beginText(x, y)
+        text_obj.setFont(font, font_size)
+        text_obj.textLine(text)
+
+        self._pdf.drawText(text_obj)
 
 
     def _get_x_for_centered_text(self, text: str, font_size: int) -> int:
@@ -139,164 +90,80 @@ class PDFTimesheet:
         """
         page_num = str(self._pdf.getPageNumber())
 
-        pdf_text = self._create_pdf_text(
-            content=page_num,
+        self._draw_text(
+            text=page_num,
             x=self._get_x_for_centered_text(page_num, font_size=12),
             y=units.inch * 0.5
         )
 
-        self._draw_text(pdf_text)
 
-
-    def _create_bordered_text(
-        self,
-        text: PDFText,
-        padding_horizontal: int,
-        padding_vertical: int
-    ) -> PDFBorderedText:
+    def _draw_header_title(self) -> None:
         """
-        Creates a bordered text object.
-        """
-        text_width = pdfmetrics.stringWidth(text.content, FONT, text.font_size)
-
-        border_width = text_width + (padding_horizontal * 2)
-        border_height = (text.y - text.pdf_obj.getY()) + (padding_vertical * 2)
-
-        border_x = text.pdf_obj.getX() - padding_horizontal
-        # y is not perfectly centered... TODO: ?
-        border_y = text.y - padding_vertical  - (padding_vertical / 2.0)
-
-        return PDFBorderedText(
-            text=text,
-            x=border_x,
-            y=border_y,
-            width=border_width,
-            height=border_height
-        )
-
-
-    def _draw_bordered_text(self, bordered_text: PDFBorderedText) -> None:
-        """
-        Draws a bordered text object (includes text and border) on the current page.
-        """
-        self._pdf.setStrokeAlpha(1)
-        self._pdf.setLineWidth(1)
-
-        self._draw_text(bordered_text.text)
-
-        self._pdf.setStrokeAlpha(0.5)
-        self._pdf.setLineWidth(0.1)
-
-        self._pdf.rect(
-            bordered_text.x,
-            bordered_text.y,
-            bordered_text.width,
-            bordered_text.height
-        )
-
-
-    def _sink_border(self, border: PDFBorderedText) -> None:
-        """
-        Sinks the border to create a shadow effect.
-        """
-        self._pdf.setStrokeAlpha(1)
-        self._pdf.setLineWidth(1)
-
-        self._pdf.line(
-            border.x,
-            border.y,
-            border.x,
-            border.y + border.height
-        )
-
-        self._pdf.line(
-            border.x,
-            border.y + border.height,
-            border.x + border.width,
-            border.y + border.height
-        )
-
-
-    def _raise_border(self, border: PDFBorderedText) -> None:
-        """
-        Raises the border to create a highlighted effect.
-        """
-        self._pdf.setStrokeAlpha(1)
-        self._pdf.setLineWidth(1)
-
-        self._pdf.line(
-            border.x,
-            border.y,
-            border.x + border.width,
-            border.y
-        )
-        self._pdf.line(
-            border.x + border.width,
-            border.y,
-            border.x + border.width,
-            border.y + border.height
-        )
-
-
-    def _create_header_title_box(self) -> PDFBorderedText:
-        """
-        Creates the 'company name' box in the header:
-            +----------------------------+
-            |        COMPANY NAME        |
-            +----------------------------+
+        Draws the <COMPANY NAME> header box on the page.
         """
         text = constants.COMPANY_NAME
         font_size = 14
-        x = self._get_x_for_centered_text(text, font_size)
 
-        pdf_text = self._create_pdf_text(
-            content=text,
-            font_size=font_size,
-            x=x,
-            y=self._y
-        )
+        table = platypus.Table([[text]])
 
-        return self._create_bordered_text(pdf_text, 20, 12)
+        table.setStyle([
+            ('TEXTCOLOR', (0, 0), (0, 0), colors.black),
+            ('ALIGN', (0, 0), (0, 0), 'CENTER'),
+            ('VALIGN', (0, 0), (0, 0), 'MIDDLE'),
+            ('FONTSIZE', (0, 0), (0, 0), font_size),
+            ('LEFTPADDING', (0, 0), (0, 0), 16),
+            ('RIGHTPADDING', (0, 0), (0, 0), 16),
+            ('TOPPADDING', (0, 0), (0, 0), 16),
+            ('BOTTOMPADDING', (0, 0), (0, 0), 16),
+            ('BOX', (0, 0), (0, 0), 0.1, colors.black), # All borders 0.1 thick
+            ('LINEBEFORE', (0, 0), (0, 0), 1, colors.black),  # Left border 1 thick
+            ('LINEABOVE', (0, 0), (0, 0), 1, colors.black),  # Top border 1 thick
+        ])
+
+        table_width, table_height = table.wrapOn(self._pdf, 0, 0)
+        table.drawOn(self._pdf, x=(PAGE_WIDTH - table_width) / 2.0, y=self._y - table_height)
+
+        self._y -= table_height
 
 
-    def _create_header_subtitle_box(self) -> PDFBorderedText:
+    def _draw_header_subtitle(self) -> None:
         """
-        Creates the 'crew timesheet' box in the header:
-            +--------------------+
-            |   CREW TIMESHEET   |
-            +--------------------+
+        Draws the CREW TIMESHEET header box on the page.
         """
         text = "CREW TIMESHEET"
         font_size = 12
-        x = self._get_x_for_centered_text(text, font_size)
 
-        timesheet_text = self._create_pdf_text(
-            content=text,
-            font_size=font_size,
-            x=x,
-            y=self._y
-        )
+        table = platypus.Table([[text]])
 
-        return self._create_bordered_text(timesheet_text, 10, 6)
+        table.setStyle([
+            ('TEXTCOLOR', (0, 0), (0, 0), colors.black),
+            ('ALIGN', (0, 0), (0, 0), 'CENTER'),
+            ('VALIGN', (0, 0), (0, 0), 'MIDDLE'),
+            ('FONTSIZE', (0, 0), (0, 0), font_size),
+            ('LEFTPADDING', (0, 0), (0, 0), 10),
+            ('RIGHTPADDING', (0, 0), (0, 0), 10),
+            ('TOPPADDING', (0, 0), (0, 0), 6),
+            ('BOTTOMPADDING', (0, 0), (0, 0), 6),
+            ('BOX', (0, 0), (0, 0), 0.1, colors.black), # All borders 0.1 thick
+            ('LINEAFTER', (0, 0), (0, 0), 1, colors.black),  # Right border 1 thick
+            ('LINEBELOW', (0, 0), (0, 0), 1, colors.black),  # Bottom border 1 thick
+        ])
+
+        table_width, table_height = table.wrapOn(self._pdf, 0, 0)
+        table.drawOn(self._pdf, x=(PAGE_WIDTH - table_width) / 2.0, y=self._y - table_height)
+
+        self._y -= table_height
 
 
     def _draw_header(self) -> None:
         """
         Draws the header on the PDF. This should appear only on the first page.
         """
-        title = self._create_header_title_box()
+        self._draw_header_title()
 
-        self._y = title.y - (units.cm * 1.05)
+        self._y -= (0.3 * units.cm)
 
-        subtitle = self._create_header_subtitle_box()
-
-        self._draw_bordered_text(title)
-        self._draw_bordered_text(subtitle)
-
-        self._sink_border(title)
-        self._raise_border(subtitle)
-
-        self._y = subtitle.y
+        self._draw_header_subtitle()
 
 
     def _draw_labelled_text(
@@ -311,24 +178,21 @@ class PDFTimesheet:
         Draws a labelled text pair, for example:
             Employee            John Smith
         """
-        pdf_label = self._create_pdf_text(
-            content=label,
+        self._draw_text(
+            text=label,
             x=units.inch,
             y=self._y,
             font=font if not bold else f"{font}-Bold",
             font_size=font_size
         )
 
-        pdf_text = self._create_pdf_text(
-            content=text,
-            x=pdf_label.pdf_obj.getX() + (units.inch * 1.95),
+        self._draw_text(
+            text=text,
+            x=units.inch + (units.inch * 1.95),
             y=self._y,
             font=font,
             font_size=font_size
         )
-
-        self._draw_text(pdf_label)
-        self._draw_text(pdf_text)
 
 
     def _draw_employees(self, employees: list[Employee]):
@@ -365,7 +229,7 @@ class PDFTimesheet:
 
         self._draw_labelled_text("Contract", employee.contract)
 
-        self._y -= units.cm
+        self._y -= (1.5 * units.cm)
 
         self._draw_timesheet(employee.shifts[0:7])
 
