@@ -1,7 +1,5 @@
 """App-wide Constants"""
-
 import datetime
-
 
 PAY_PERIOD_DAYS = 14
 DEFAULT_HOURS_REG = "8.00"
@@ -15,3 +13,4 @@ DATE_FORMAT = "%Y-%m-%d"
 DB_PATH = "assets/database.db"
 
 APP_NAME = "Timesheet Generator"
+COMPANY_NAME = "Company Name Placeholder"
