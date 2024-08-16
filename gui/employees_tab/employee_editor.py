@@ -13,7 +13,7 @@ from enum import Enum
 import gui.constants
 from gui import qutils
 from gui.employees_tab.employee_profile import EmployeeProfile
-from gui.employees_tab.timesheet_editor import TimesheetEditor
+from gui.employees_tab.timesheet.timesheet_editor import TimesheetEditor
 
 from backend.backend import backend
 from backend.errors import InternalError
@@ -98,6 +98,7 @@ class EmployeeEditor(QWidget):
         return layout
 
     def _update_employee(self) -> None:
+        # TODO: Validate timesheet
         employee = self._extract_employee()
 
         try:
@@ -114,6 +115,7 @@ class EmployeeEditor(QWidget):
             self.DONE.emit()
 
     def _add_employee(self) -> None:
+        # TODO: Validate timesheet
         employee = self._extract_employee()
 
         try:
@@ -156,6 +158,7 @@ class EmployeeEditor(QWidget):
             self.DONE.emit()
 
     def _cancel(self) -> None:
+        # TODO: check if any changes made
         self.DONE.emit()
 
     def _extract_employee(self) -> Employee:
