@@ -2,6 +2,8 @@
 
 A tool for logging employee hours and generating PDF timesheet reports.
 
+![](images/app-screenshot.png)
+
 
 ## Supported Features
 
