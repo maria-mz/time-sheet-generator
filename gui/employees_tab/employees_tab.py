@@ -83,7 +83,7 @@ class EmployeesTab(QWidget):
     def _create_search_bar(self) -> QLineEdit:
         search_bar = QLineEdit()
         search_bar.setPlaceholderText("Search by first name")
-        search_bar.textChanged.connect(self.table.filter_table_by_first_name)
+        search_bar.textChanged.connect(self.table.filter_by_first_name)
 
         return search_bar
 

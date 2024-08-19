@@ -49,13 +49,45 @@ class EmployeesTable(QTableWidget):
 
                 self.setItem(row, col, qitem)
 
-    def filter_table_by_first_name(self, name: str):
+    def filter_by_first_name(self, name: str):
+        relaxed_name = name.lower().strip()
+
+        def query(employee: Employee) -> bool:
+            return employee.first_name.lower().startswith(relaxed_name)
+
+        self._filter(query)
+    
+    def filter_by_last_name(self, name: str):
+        relaxed_name = name.lower().strip()
+
+        def query(employee: Employee) -> bool:
+            return employee.last_name.lower().startswith(relaxed_name)
+
+        self._filter(query)
+
+    def filter_by_position(self, position: str):
+        relaxed_position = position.lower().strip()
+
+        def query(employee: Employee) -> bool:
+            return employee.position.lower().startswith(relaxed_position)
+
+        self._filter(query)
+
+    def filter_by_contract(self, contract: str):
+        relaxed_contract = contract.lower().strip()
+
+        def query(employee: Employee) -> bool:
+            return employee.contract.lower().startswith(relaxed_contract)
+
+        self._filter(query)
+
+    def _filter(self, query) -> None:
         self.setCurrentItem(None) # Clear the current selection
 
-        std_name = name.lower().strip()
-
         for row in range(self.rowCount()):
-            if self.get_employee_from_row(row).first_name.lower().startswith(std_name):
+            employee = self.get_employee_from_row(row)
+
+            if query(employee):
                 self.setRowHidden(row, False)
             else:
                 self.setRowHidden(row, True)
