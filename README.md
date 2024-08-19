@@ -1,6 +1,6 @@
 # Timesheet Generator
 
-A tool for logging employee hours and generating PDF timesheet reports. (Features are developed as requested by client.)
+A tool for logging employee hours and generating PDF timesheet reports.
 
 
 ## Supported Features
@@ -22,7 +22,7 @@ A tool for logging employee hours and generating PDF timesheet reports. (Feature
 
 ## Screens
 
-Employee details shown here are AI-generated.
+Employee details are AI generated for the purpose of demonstration.
 
 
 ### `Settings` Tab
