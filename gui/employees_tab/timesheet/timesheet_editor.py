@@ -85,11 +85,11 @@ class TimesheetEditor(QWidget):
         dropdown = QComboBox()
 
         if len(timesheet_views) == 0:
-            dropdown.addItem("No shifts available")
+            dropdown.addItem("No weeks available")
             return dropdown
 
         for i in range(len(timesheet_views)):
-            dropdown.addItem(f"Page {i + 1}")
+            dropdown.addItem(f"Week {i + 1}")
 
         dropdown.currentIndexChanged.connect(self._switch_timesheet)
 
