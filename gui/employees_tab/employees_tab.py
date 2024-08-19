@@ -1,7 +1,6 @@
 from PySide6.QtWidgets import (
     QWidget, 
     QVBoxLayout,
-    QLineEdit,
     QPushButton,
     QHBoxLayout,
     QLabel,
@@ -17,6 +16,7 @@ from gui import qutils
 from gui.employees_tab.employees_table import EmployeesTable
 from gui.employees_tab.employee_editor import EmployeeEditor, EditorMode
 from gui.employees_tab.employee_importer import EmployeeImporter
+from gui.employees_tab.employee_profile import EmployeeProfile
 
 from backend.backend import backend
 from backend.errors import InternalError
@@ -36,7 +36,7 @@ class EmployeesTab(QWidget):
         self.table.populate_table(employees)
         self.table.cellDoubleClicked.connect(self._open_edit_employee_window)
 
-        self.search_bar = self._create_search_bar()
+        self.filter_section = self._create_filter_section()
 
         self.window_popup = None
 
@@ -53,7 +53,7 @@ class EmployeesTab(QWidget):
         # Create this container for custom spacing between search bar and table
         container = QVBoxLayout()
         container.setSpacing(16)
-        container.addWidget(self.search_bar)
+        container.addWidget(self.filter_section)
         container.addWidget(self.table)
 
         layout.addLayout(header_layout)
@@ -80,12 +80,17 @@ class EmployeesTab(QWidget):
 
         return layout
 
-    def _create_search_bar(self) -> QLineEdit:
-        search_bar = QLineEdit()
-        search_bar.setPlaceholderText("Search by first name")
-        search_bar.textChanged.connect(self.table.filter_by_first_name)
+    def _create_filter_section(self) -> EmployeeProfile:
+        section = EmployeeProfile()
+        section.setTitle("Filter")
 
-        return search_bar
+        section.first_name_edit.textChanged.connect(self.table.filter_by_first_name)
+        section.last_name_edit.textChanged.connect(self.table.filter_by_last_name)
+        section.id_edit.textChanged.connect(self.table.filter_by_id)
+        section.position_edit.textChanged.connect(self.table.filter_by_position)
+        section.contract_edit.textChanged.connect(self.table.filter_by_contract)
+
+        return section
 
     def _create_buttons(self) -> QHBoxLayout:
         layout = QHBoxLayout()
@@ -166,9 +171,6 @@ class EmployeesTab(QWidget):
             self.refresh_tab()
             dialog = qutils.create_info_dialog("Employees deleted.")
             choice = dialog.exec()
-
-    def clear_search_bar(self) -> None:
-        self.search_bar.setText("")
     
     def _update_title(self, num_employees: int) -> None:
         self.title.setText(f"Employees ({num_employees})")
@@ -184,4 +186,3 @@ class EmployeesTab(QWidget):
         employees = backend.get_employees()
         self.table.populate_table(employees)
         self._update_title(len(employees))
-        self.clear_search_bar()

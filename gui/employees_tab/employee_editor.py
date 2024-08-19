@@ -35,10 +35,12 @@ class EmployeeEditor(QWidget):
         super().__init__()
 
         self.profile_widget = EmployeeProfile(employee)
+        self.profile_widget.setTitle("Employee Details")
+
         self.mode = mode
 
         if self.mode == EditorMode.EDIT:
-            self.profile_widget.set_id_editable(False)
+            self.profile_widget.id_edit.setEnabled(False)
 
         self.timesheet_editor = TimesheetEditor(employee)
  
