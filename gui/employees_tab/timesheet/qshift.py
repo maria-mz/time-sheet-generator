@@ -23,6 +23,12 @@ TIME_FORMAT = "%I:%M %p"
 ERR_STYLE = "border: 1px solid orange; background-color: gold"
 
 
+class InvalidShiftValue(Exception):
+    """
+    Raised when attempting to convert QShift to Shift and a value is invalid.
+    """
+
+
 class QShift:
     """
     Represents a single shift's UI components.
@@ -120,11 +126,11 @@ class QShift:
 
     def _extract_time(self, time_edit: QLineEdit) -> Union[datetime.time, None]:
         """
-        Gets the time from a QLineEdit as expected by Shift. Raises ValueError
-        if the time value is invalid.
+        Gets the time from a QLineEdit as expected by Shift.
+        Raises InvalidShiftValue if the time value is invalid.
         """
         if not self._validate_time(time_edit):
-            raise ValueError("cannot convert time; time value is invalid")
+            raise InvalidShiftValue("cannot convert time; time value is invalid")
 
         text = time_edit.text()
 
@@ -135,11 +141,11 @@ class QShift:
 
     def _extract_hours(self, hours_edit: QLineEdit) -> str:
         """
-        Gets the hours from a QLineEdit as expected by Shift. Raises ValueError
-        if the time value is invalid.
+        Gets the hours from a QLineEdit as expected by Shift.
+        Raises InvalidShiftValue if the time value is invalid.
         """
         if not self._validate_hours(hours_edit):
-            raise ValueError("cannot convert hours; hours value is invalid")
+            raise InvalidShiftValue("cannot convert hours; hours value is invalid")
 
         return hours_edit.text()
 
@@ -167,23 +173,10 @@ class QShift:
         """
         edit.setStyleSheet("")
 
-    def is_valid(self) -> bool:
-        """
-        Checks if all values in the shift are valid.
-
-        :return: True if all values are valid, otherwise False.
-        """
-        return (
-            self._validate_time(self.time_in_edit) and 
-            self._validate_time(self.time_out_edit) and
-            self._validate_hours(self.hours_reg_edit) and
-            self._validate_hours(self.hours_ot_edit)
-        )
-
     def to_shift(self) -> Shift:
         """
-        Converts the shift details in the UI to a Shift object. Raises a
-        ValueError if a field value is currently invalid.
+        Converts the shift details in the UI to a Shift object.
+        Raises a InvalidShiftValue if a field value is currently invalid.
         """
         return Shift(
             date=self.date,

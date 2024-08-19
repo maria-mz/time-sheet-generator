@@ -164,15 +164,14 @@ class TimesheetEditor(QWidget):
 
     def get_shifts(self) -> list[Shift]:
         """
-        Save the employee's shifts persistently. Involves creating a new list
-        of Shifts from all the QShifts, updating the Employee object, then
-        calling the backend.
+        Get all the shift data. Raises InvalidShiftValue if any shift values are
+        currently invalid.
         """
         shifts = []
 
         for timesheet_view in self.timesheet_views:
             for qshift in timesheet_view.qshifts:
-                qshift.handle_input()
+                qshift.handle_input() # To handle edge case where saving while editing
 
             shifts.extend(self._create_shifts(timesheet_view.qshifts))
 
@@ -183,9 +182,3 @@ class TimesheetEditor(QWidget):
         Turn a list of QShifts into the corresponding Shifts.
         """
         return [qshift.to_shift() for qshift in qshifts]
-
-    def is_valid(self) -> bool:
-        return all(
-            qshift.is_valid() for timesheet_view in self.timesheet_views \
-            for qshift in timesheet_view.qshifts
-        )
