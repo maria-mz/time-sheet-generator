@@ -1,6 +1,7 @@
 """Database Dataclasses"""
 
 from dataclasses import dataclass
+from typing import Union
 import datetime
 
 import constants
@@ -21,8 +22,8 @@ class Shift:
     Shift table row data
     """
     date: datetime.date
-    time_in: datetime.time = constants.DEFAULT_TIME_IN
-    time_out: datetime.time = constants.DEFAULT_TIME_OUT
+    time_in: Union[datetime.time, None] = constants.DEFAULT_TIME_IN
+    time_out: Union[datetime.time, None] = constants.DEFAULT_TIME_OUT
     hours_reg: str = constants.DEFAULT_HOURS_REG
     hours_ot: str = constants.DEFAULT_HOURS_OT
 

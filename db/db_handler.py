@@ -241,12 +241,18 @@ class DatabaseHandler:
         shifts = []
 
         for row in rows:
+            date = datetime.strptime(row[0], constants.DATE_FORMAT).date()
+            time_in = datetime.strptime(row[1], constants.TIME_FORMAT).time() if row[1] != "NULL" else None
+            time_out = datetime.strptime(row[2], constants.TIME_FORMAT).time() if row[2] != "NULL" else None
+            hours_reg = row[3]
+            hours_ot = row[4]
+
             shift = Shift(
-                date=datetime.strptime(row[0], constants.DATE_FORMAT).date(),
-                time_in=datetime.strptime(row[1], constants.TIME_FORMAT).time(),
-                time_out=datetime.strptime(row[2], constants.TIME_FORMAT).time(),
-                hours_reg=row[3],
-                hours_ot=row[4],
+                date=date,
+                time_in=time_in,
+                time_out=time_out,
+                hours_reg=hours_reg,
+                hours_ot=hours_ot,
             )
             shifts.append(shift)
 
@@ -257,13 +263,13 @@ class DatabaseHandler:
         Add a new shift for an employee. If an employee with this id doesn't exist,
         raises sqlite3.IntegrityError.
         """
-        v = f" \
-            '{shift.date.strftime(constants.DATE_FORMAT)}', \
-            '{shift.time_in.strftime(constants.TIME_FORMAT)}', \
-            '{shift.time_out.strftime(constants.TIME_FORMAT)}', \
-            '{shift.hours_reg}', \
-            '{shift.hours_ot}', \
-            '{employee_id}'"
+        date = shift.date.strftime(constants.DATE_FORMAT)
+        time_in = shift.time_in.strftime(constants.TIME_FORMAT) if shift.time_in else "NULL"
+        time_out = shift.time_out.strftime(constants.TIME_FORMAT) if shift.time_out else "NULL"
+        hours_reg = shift.hours_reg
+        hours_ot = shift.hours_ot
+
+        v = f" '{date}', '{time_in}', '{time_out}', '{hours_reg}', '{hours_ot}', '{employee_id}'"
 
         self.cur.execute(f"INSERT INTO shift VALUES ({v})")
 
@@ -282,15 +288,21 @@ class DatabaseHandler:
         """
         Update an existing shift.
         """
+        date = shift.date.strftime(constants.DATE_FORMAT)
+        time_in = shift.time_in.strftime(constants.TIME_FORMAT) if shift.time_in else "NULL"
+        time_out = shift.time_out.strftime(constants.TIME_FORMAT) if shift.time_out else "NULL"
+        hours_reg = shift.hours_reg
+        hours_ot = shift.hours_ot
+
         self.cur.execute(
             f"UPDATE shift SET \
-            date='{shift.date.strftime(constants.DATE_FORMAT)}', \
-            time_in='{shift.time_in.strftime(constants.TIME_FORMAT)}', \
-            time_out='{shift.time_out.strftime(constants.TIME_FORMAT)}', \
-            hours_reg='{shift.hours_reg}', \
-            hours_ot='{shift.hours_ot}' \
+            date='{date}', \
+            time_in='{time_in}', \
+            time_out='{time_out}', \
+            hours_reg='{hours_reg}', \
+            hours_ot='{hours_ot}' \
             WHERE employee_id='{employee_id}' \
-            AND date='{shift.date.strftime(constants.DATE_FORMAT)}'"
+            AND date='{date}'"
         )
 
     def print_settings(self) -> None:
