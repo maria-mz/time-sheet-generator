@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QSizePolicy,
     QSpacerItem,
-    QMessageBox
+    QMessageBox,
 )
 from PySide6.QtCore import Signal
 from enum import Enum
@@ -13,6 +13,7 @@ from enum import Enum
 import gui.constants
 from gui import qutils
 from gui.employees_tab.employee_profile import EmployeeProfile
+from gui.employees_tab.timesheet.qshift import InvalidShiftValue
 from gui.employees_tab.timesheet.timesheet_editor import TimesheetEditor
 
 from backend.backend import backend
@@ -98,8 +99,14 @@ class EmployeeEditor(QWidget):
         return layout
 
     def _update_employee(self) -> None:
-        # TODO: Validate timesheet
-        employee = self._extract_employee()
+        try:
+            employee = self._extract_employee()
+        except InvalidShiftValue:
+            dialog = qutils.create_warning_dialog(
+                "Please correct the highlighted fields and try again."
+            )
+            dialog.exec()
+            return
 
         try:
             backend.update_employee(employee)
@@ -115,8 +122,14 @@ class EmployeeEditor(QWidget):
             self.DONE.emit()
 
     def _add_employee(self) -> None:
-        # TODO: Validate timesheet
-        employee = self._extract_employee()
+        try:
+            employee = self._extract_employee()
+        except InvalidShiftValue:
+            dialog = qutils.create_warning_dialog(
+                "Please correct the highlighted fields and try again."
+            )
+            dialog.exec()
+            return
 
         try:
             backend.add_employee(employee)
@@ -158,7 +171,6 @@ class EmployeeEditor(QWidget):
             self.DONE.emit()
 
     def _cancel(self) -> None:
-        # TODO: check if any changes made
         self.DONE.emit()
 
     def _extract_employee(self) -> Employee:

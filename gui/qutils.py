@@ -27,6 +27,15 @@ def create_error_dialog(title: str, text: str = "") -> QMessageBox:
 
     return dialog
 
+def create_warning_dialog(title: str, text: str = "") -> QMessageBox:
+    dialog = QMessageBox()
+    dialog.setText(title)
+    dialog.setInformativeText(text)
+    dialog.setStandardButtons(QMessageBox.Ok)
+    dialog.setIcon(QMessageBox.Warning)
+
+    return dialog
+
 def create_info_dialog(title: str, text: str = "") -> QMessageBox:
     dialog = QMessageBox()
     dialog.setText(title)
