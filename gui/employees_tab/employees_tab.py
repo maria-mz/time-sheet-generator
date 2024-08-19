@@ -28,10 +28,6 @@ class EmployeesTab(QWidget):
 
         employees = backend.get_employees()
 
-        self.title = QLabel()
-        self._update_title(len(employees))
-        self.title.setStyleSheet("font-weight: bold; font-size: 24px")
-
         self.table = EmployeesTable()
         self.table.populate_table(employees)
         self.table.cellDoubleClicked.connect(self._open_edit_employee_window)
@@ -63,6 +59,9 @@ class EmployeesTab(QWidget):
         return layout
 
     def _create_header_layout(self) -> QHBoxLayout:
+        title = QLabel("Employees")
+        title.setStyleSheet("font-weight: bold; font-size: 24px")
+
         subtitle = QLabel(
             "Edit employee details and timesheet information here. " + \
             "Click an employee to open the editor."
@@ -74,7 +73,7 @@ class EmployeesTab(QWidget):
 
         layout = QVBoxLayout()
 
-        layout.addWidget(self.title)
+        layout.addWidget(title)
         layout.addWidget(subtitle)
         layout.addWidget(line)
 
@@ -171,9 +170,6 @@ class EmployeesTab(QWidget):
             self.refresh_tab()
             dialog = qutils.create_info_dialog("Employees deleted.")
             choice = dialog.exec()
-    
-    def _update_title(self, num_employees: int) -> None:
-        self.title.setText(f"Employees ({num_employees})")
 
     @Slot()
     def close_window_popup(self):
@@ -185,4 +181,3 @@ class EmployeesTab(QWidget):
     def refresh_tab(self):
         employees = backend.get_employees()
         self.table.populate_table(employees)
-        self._update_title(len(employees))
