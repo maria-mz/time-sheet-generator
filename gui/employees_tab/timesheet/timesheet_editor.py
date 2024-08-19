@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QGridLayout,
     QGroupBox,
     QComboBox,
-    QStackedLayout,
+    QStackedLayout
 )
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
@@ -88,11 +88,8 @@ class TimesheetEditor(QWidget):
             dropdown.addItem("No shifts available")
             return dropdown
 
-        for timesheet_view in timesheet_views:
-            option = f"{timesheet_view.start_date} to {timesheet_view.end_date} " + \
-                     f"({len(timesheet_view.qshifts)} days)"
-
-            dropdown.addItem(option)
+        for i in range(len(timesheet_views)):
+            dropdown.addItem(f"Page {i + 1}")
 
         dropdown.currentIndexChanged.connect(self._switch_timesheet)
 
@@ -124,7 +121,7 @@ class TimesheetEditor(QWidget):
 
         grid = QGridLayout()
 
-        titles = ["Date", "Time In", "Time Out", "Regular Hours", "Overtime Hours"]
+        titles = ["Date", "", "Time In", "Time Out", "Regular Hours", "Overtime Hours"]
 
         for i, title in enumerate(titles):
             title_label = QLabel(title)
@@ -132,11 +129,12 @@ class TimesheetEditor(QWidget):
             grid.addWidget(title_label, 0, i)
 
         for i, qshift in enumerate(timesheet_view.qshifts):
-            grid.addWidget(qshift.date_label, i + 1, 0)
-            grid.addWidget(qshift.time_in_edit, i + 1, 1)
-            grid.addWidget(qshift.time_out_edit, i + 1, 2)
-            grid.addWidget(qshift.hours_reg_edit, i + 1, 3)
-            grid.addWidget(qshift.hours_ot_edit, i + 1, 4)
+            grid.addWidget(QLabel(qshift.date.strftime("%a")), i + 1, 0)
+            grid.addWidget(qshift.date_label, i + 1, 1)
+            grid.addWidget(qshift.time_in_edit, i + 1, 2)
+            grid.addWidget(qshift.time_out_edit, i + 1, 3)
+            grid.addWidget(qshift.hours_reg_edit, i + 1, 4)
+            grid.addWidget(qshift.hours_ot_edit, i + 1, 5)
 
         grid.setContentsMargins(12, 12, 12, 12)
 
@@ -154,8 +152,8 @@ class TimesheetEditor(QWidget):
         dropdown = self._create_dropdown(self.timesheet_views)
 
         layout = QVBoxLayout()
-        layout.addWidget(dropdown)
         layout.addLayout(self.timesheet_layout)
+        layout.addWidget(dropdown, alignment=Qt.AlignRight)
 
         box.setLayout(layout)
 
@@ -173,6 +171,9 @@ class TimesheetEditor(QWidget):
         shifts = []
 
         for timesheet_view in self.timesheet_views:
+            for qshift in timesheet_view.qshifts:
+                qshift.handle_input()
+
             shifts.extend(self._create_shifts(timesheet_view.qshifts))
 
         return shifts
@@ -188,8 +189,3 @@ class TimesheetEditor(QWidget):
             qshift.is_valid() for timesheet_view in self.timesheet_views \
             for qshift in timesheet_view.qshifts
         )
-
-    def outline_invalid_edits(self) -> None:
-        for timesheet_view in self.timesheet_views:
-            for qshift in timesheet_view.qshifts:
-                qshift.outline_invalid_edits()
