@@ -127,10 +127,25 @@ class Backend:
         if pay_period is None:
             return []
 
-        return [
-            Shift(date=utils.next_date(pay_period.start_date, i)) \
-            for i in range(constants.PAY_PERIOD_DAYS)
-        ]
+        shifts = []
+        
+        for i in range(constants.PAY_PERIOD_DAYS):
+            date = utils.next_date(pay_period.start_date, i)
+
+            if date.weekday() >= 5: # is a weekend
+                shift = Shift(
+                    date=date,
+                    time_in=None,
+                    time_out=None,
+                    hours_reg=constants.DEFAULT_HOURS_WEEKEND,
+                    hours_ot=constants.DEFAULT_HOURS_WEEKEND
+                )
+            else:
+                shift = Shift(date=date)
+
+            shifts.append(shift)
+
+        return shifts
 
     def create_empty_employee(self) -> Employee:
         return Employee(
