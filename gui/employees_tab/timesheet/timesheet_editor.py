@@ -78,22 +78,22 @@ class TimesheetEditor(QWidget):
 
         return timesheet_views
 
-    def _create_dropdown(self, timesheet_views: list[TimesheetView]) -> QComboBox:
+    def _create_paginator(self, timesheet_views: list[TimesheetView]) -> QComboBox:
         """
         Create a dropdown menu for selecting different views of the timesheet.
         """
-        dropdown = QComboBox()
+        paginator = QComboBox()
 
         if len(timesheet_views) == 0:
-            dropdown.addItem("No weeks available")
-            return dropdown
+            paginator.addItem("No weeks available")
+            return paginator
 
         for i in range(len(timesheet_views)):
-            dropdown.addItem(f"Week {i + 1}")
+            paginator.addItem(f"Week {i + 1}")
 
-        dropdown.currentIndexChanged.connect(self._switch_timesheet)
+        paginator.currentIndexChanged.connect(self._switch_timesheet)
 
-        return dropdown
+        return paginator
 
     def _create_timesheet_layout(self) -> QStackedLayout:
         """
@@ -149,11 +149,11 @@ class TimesheetEditor(QWidget):
     def _create_timesheet_box(self) -> QGroupBox:
         box = QGroupBox("Timesheet")
 
-        dropdown = self._create_dropdown(self.timesheet_views)
+        paginator = self._create_paginator(self.timesheet_views)
 
         layout = QVBoxLayout()
         layout.addLayout(self.timesheet_layout)
-        layout.addWidget(dropdown, alignment=Qt.AlignRight)
+        layout.addWidget(paginator, alignment=Qt.AlignRight)
 
         box.setLayout(layout)
 
