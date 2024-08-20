@@ -4,6 +4,7 @@ from typing import Union
 import pandas as pd
 import atexit
 import logging
+import os
 
 from backend.errors import CSVReadError
 from backend.error_handler import error_handler
@@ -151,6 +152,9 @@ class Backend:
     def save_timesheet(self, employees: list[Employee], file_path: str) -> None:
         timesheet = PDFTimesheet(employees, filename=file_path)
         timesheet.get_pdf().save()
+
+    def get_home_dir(self) -> str:
+        return os.path.expanduser("~")
 
     def create_empty_employee(self) -> Employee:
         return Employee(

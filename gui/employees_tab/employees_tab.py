@@ -7,9 +7,11 @@ from PySide6.QtWidgets import (
     QSpacerItem,
     QSizePolicy,
     QMessageBox,
-    QFrame
+    QFrame,
+    QFileDialog,
 )
-from PySide6.QtCore import Slot
+from PySide6.QtCore import Slot, Qt, QSize
+from PySide6.QtGui import QIcon
 
 import gui.constants
 from gui import qutils
@@ -32,8 +34,6 @@ class EmployeesTab(QWidget):
         self.table.populate_table(employees)
         self.table.cellDoubleClicked.connect(self._open_edit_employee_window)
 
-        self.filter_section = self._create_filter_section()
-
         self.window_popup = None
 
         layout = self._create_main_layout()
@@ -44,17 +44,21 @@ class EmployeesTab(QWidget):
         layout = QVBoxLayout()
 
         header_layout = self._create_header_layout()
-        buttons = self._create_buttons()
+        filter_section = self._create_filter_section()
+        pdf_button = self._create_pdf_button()
+
+        employee_buttons = self._create_employee_buttons()
 
         # Create this container for custom spacing between search bar and table
         container = QVBoxLayout()
         container.setSpacing(16)
-        container.addWidget(self.filter_section)
+        container.addWidget(filter_section)
+        container.addWidget(pdf_button, alignment=Qt.AlignRight)
         container.addWidget(self.table)
 
         layout.addLayout(header_layout)
         layout.addLayout(container)
-        layout.addLayout(buttons)
+        layout.addLayout(employee_buttons)
 
         return layout
 
@@ -91,7 +95,18 @@ class EmployeesTab(QWidget):
 
         return section
 
-    def _create_buttons(self) -> QHBoxLayout:
+    def _create_pdf_button(self) -> QPushButton:
+        btn = QPushButton("Download Timesheet")
+        btn.setToolTip(
+            "Generate the timesheet PDF for employees matching the current filter."
+        )
+        btn.clicked.connect(self._generate_pdf)
+        btn.setIcon(QIcon("assets/icons/arrow-down-solid.svg")) # TODO: constant
+        btn.setIconSize(QSize(14, 14))
+
+        return btn
+
+    def _create_employee_buttons(self) -> QHBoxLayout:
         layout = QHBoxLayout()
 
         delete_btn = QPushButton("Delete All Employees")
@@ -170,6 +185,30 @@ class EmployeesTab(QWidget):
             self.refresh_tab()
             dialog = qutils.create_info_dialog("Employees deleted.")
             choice = dialog.exec()
+
+    def _open_save_file_window(self) -> str:
+        response = QFileDialog.getSaveFileName(
+            parent=self,
+            caption="Save PDF",
+            dir=backend.get_home_dir(),
+            filter="Adobe Acrobat Document (*.pdf)"
+        )
+
+        file_path = response[0]
+
+        return file_path
+
+    @Slot()
+    def _generate_pdf(self):
+        file_path = self._open_save_file_window()
+
+        if file_path == "": # User cancelled
+            return
+
+        backend.save_timesheet(
+            employees=self.table.get_employees_matching_filter(),
+            file_path=file_path
+        )
 
     @Slot()
     def close_window_popup(self):
