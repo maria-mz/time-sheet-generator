@@ -5,7 +5,7 @@ from datetime import datetime
 from dataclasses import dataclass
 
 from reportlab import platypus
-from reportlab.pdfgen import canvas, textobject
+from reportlab.pdfgen import canvas
 from reportlab.lib import colors, pagesizes, units
 from reportlab.pdfbase import pdfmetrics
 

@@ -7,6 +7,7 @@ import logging
 
 from backend.errors import CSVReadError
 from backend.error_handler import error_handler
+from backend.pdf_timesheet import PDFTimesheet
 from db.db_handler import DatabaseHandler
 from db.db_data import PayPeriod, Shift, Employee
 import utils
@@ -146,6 +147,10 @@ class Backend:
             shifts.append(shift)
 
         return shifts
+
+    def save_timesheet(self, employees: list[Employee], file_path: str) -> None:
+        timesheet = PDFTimesheet(employees, filename=file_path)
+        timesheet.get_pdf().save()
 
     def create_empty_employee(self) -> Employee:
         return Employee(
