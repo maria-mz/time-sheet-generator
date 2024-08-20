@@ -2,6 +2,8 @@
 
 from typing import Union
 import pandas as pd
+import platform
+import subprocess
 import atexit
 import logging
 import os
@@ -155,6 +157,18 @@ class Backend:
 
     def get_home_dir(self) -> str:
         return os.path.expanduser("~")
+
+    def open_explorer(self, file_path: str) -> None:
+        os_name = platform.system()
+
+        if os_name == 'Windows':
+            subprocess.run(['explorer', '/select,', file_path])
+        elif os_name == 'Darwin':
+            subprocess.run(['open', '-R', file_path])
+        elif os_name == 'Linux':
+            subprocess.run(['xdg-open', file_path])
+        else:
+            raise NotImplementedError('Unsupported OS:', os_name)
 
     def create_empty_employee(self) -> Employee:
         return Employee(

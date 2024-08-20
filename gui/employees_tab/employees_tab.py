@@ -1,3 +1,5 @@
+import subprocess
+
 from PySide6.QtWidgets import (
     QWidget, 
     QVBoxLayout,
@@ -198,6 +200,13 @@ class EmployeesTab(QWidget):
 
         return file_path
 
+    def _view_output_location(self, file_path: str) -> None:
+        try:
+            backend.open_explorer(file_path)
+        except InternalError:
+            dialog = qutils.create_error_dialog(gui.constants.INTERNAL_ERR_MSG)
+            dialog.exec()
+
     @Slot()
     def _generate_pdf(self):
         file_path = self._open_save_file_window()
@@ -205,10 +214,20 @@ class EmployeesTab(QWidget):
         if file_path == "": # User cancelled
             return
 
-        backend.save_timesheet(
-            employees=self.table.get_employees_matching_filter(),
-            file_path=file_path
-        )
+        try:
+            backend.save_timesheet(
+                employees=self.table.get_employees_matching_filter(),
+                file_path=file_path
+            )
+        except InternalError:
+            dialog = qutils.create_error_dialog(gui.constants.INTERNAL_ERR_MSG)
+            dialog.exec()
+        else:
+            dialog = qutils.create_yes_no_dialog("PDF saved. View output location?")
+            choice = dialog.exec()
+
+            if choice == QMessageBox.Yes:
+                self._view_output_location(file_path)
 
     @Slot()
     def close_window_popup(self):

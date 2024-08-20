@@ -53,3 +53,12 @@ def create_confirm_dialog(title: str, text: str = "") -> QMessageBox:
     dialog.setIcon(QMessageBox.Warning)
 
     return dialog
+
+def create_yes_no_dialog(title: str, text: str = "") -> QMessageBox:
+    dialog = QMessageBox()
+    dialog.setText(title)
+    dialog.setInformativeText(text)
+    dialog.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+    dialog.setIcon(QMessageBox.Information)
+
+    return dialog
