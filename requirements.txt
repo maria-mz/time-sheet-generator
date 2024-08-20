@@ -1,3 +1,13 @@
 pytest
-pyside6
+
+# Using PySide6-Essentials to reduce package size
+pyside6-essentials
+
+# Some module is using NumPy 1.x. To ensure compatability, downgrading to 1.x.
+# Using NumPy 2.x causes a warning:
+# "A module that was compiled using NumPy 1.x cannot be run in NumPy 2.1.0
+# as it may crash."
+numpy<2
 pandas
+
+reportlab
