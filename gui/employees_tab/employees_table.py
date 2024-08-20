@@ -63,52 +63,32 @@ class EmployeesTable(QTableWidget):
         self._filter()
 
     def filter_by_first_name(self, name: str):
-        normalized_name = self._normalize(name)
-
-        def query(employee: Employee) -> bool:
-            return employee.first_name.lower().startswith(normalized_name)
-
-        self._filter_queries[FilterIndex.FIRST_NAME.value] = query
-
-        self._filter()
+        self._filter_by("first_name", FilterIndex.FIRST_NAME, name)
 
     def filter_by_last_name(self, name: str):
-        normalized_name = self._normalize(name)
-
-        def query(employee: Employee) -> bool:
-            return employee.last_name.lower().startswith(normalized_name)
-
-        self._filter_queries[FilterIndex.LAST_NAME.value] = query
-
-        self._filter()
+        self._filter_by("last_name", FilterIndex.LAST_NAME, name)
 
     def filter_by_position(self, position: str):
-        normalized_position = position.lower().strip()
-
-        def query(employee: Employee) -> bool:
-            return employee.position.lower().startswith(normalized_position)
-
-        self._filter_queries[FilterIndex.POSITION.value] = query
-
-        self._filter()
+        self._filter_by("position", FilterIndex.POSITION, position)
 
     def filter_by_id(self, employee_id: str):
-        normalized_id = employee_id.lower().strip()
-
-        def query(employee: Employee) -> bool:
-            return employee.employee_id.lower().startswith(normalized_id)
-
-        self._filter_queries[FilterIndex.EMPLOYEE_ID.value] = query
-
-        self._filter()
+        self._filter_by("employee_id", FilterIndex.EMPLOYEE_ID, employee_id)
 
     def filter_by_contract(self, contract: str):
-        normalized_contract = contract.lower().strip()
+        self._filter_by("contract", FilterIndex.CONTRACT, contract)
+
+    def _filter_by(
+        self,
+        employee_attr: str,
+        filter_index: FilterIndex,
+        target: str
+    ) -> None:
+        normalized_target = self._normalize(target)
 
         def query(employee: Employee) -> bool:
-            return employee.contract.lower().startswith(normalized_contract)
+            return getattr(employee, employee_attr).lower().startswith(normalized_target)
 
-        self._filter_queries[FilterIndex.CONTRACT.value] = query
+        self._filter_queries[filter_index.value] = query
 
         self._filter()
 
@@ -130,3 +110,10 @@ class EmployeesTable(QTableWidget):
 
     def get_employee_from_row(self, row: int) -> Employee:
         return self.employees[row]
+
+    def get_employees_matching_filter(self) -> list[Employee]:
+        return [
+            self.get_employee_from_row(row)
+            for row in range(self.rowCount())
+            if not self.isRowHidden(row)
+        ]
