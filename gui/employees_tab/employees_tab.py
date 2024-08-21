@@ -1,5 +1,3 @@
-import subprocess
-
 from PySide6.QtWidgets import (
     QWidget, 
     QVBoxLayout,
@@ -22,6 +20,7 @@ from gui.employees_tab.employee_editor import EmployeeEditor, EditorMode
 from gui.employees_tab.employee_importer import EmployeeImporter
 from gui.employees_tab.employee_profile import EmployeeProfile
 
+import utils
 from backend.backend import backend
 from backend.errors import InternalError
 
@@ -103,7 +102,7 @@ class EmployeesTab(QWidget):
             "Generate the timesheet PDF for employees matching the current filter."
         )
         btn.clicked.connect(self._generate_pdf)
-        btn.setIcon(QIcon("assets/icons/arrow-down-solid.svg")) # TODO: constant
+        btn.setIcon(QIcon(utils.load_file("assets/icons/arrow-down-solid.svg"))) # TODO: constant
         btn.setIconSize(QSize(14, 14))
 
         return btn

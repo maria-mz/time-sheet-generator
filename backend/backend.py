@@ -6,6 +6,7 @@ import platform
 import subprocess
 import atexit
 import logging
+import sys
 import os
 
 from backend.errors import CSVReadError
@@ -189,6 +190,6 @@ try:
     backend = Backend()
 except Exception as e:
     _logger.exception(f"failed to initialize backend. terminating program")
-    exit(1)
+    sys.exit(1)
 
 atexit.register(backend.shutdown)
