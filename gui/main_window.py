@@ -48,5 +48,5 @@ class MainWindow(QMainWindow):
         # hit "Update". Want to show the active pay period again
 
         if index == 0:
-            pay_period = self.get_pay_period()
+            pay_period = backend.get_pay_period()
             self.settings_tab.update_pay_period(pay_period)
