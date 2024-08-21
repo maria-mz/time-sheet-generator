@@ -1,5 +1,6 @@
 """Global Backend Module"""
 
+from datetime import datetime
 from typing import Union
 import pandas as pd
 import platform
@@ -33,11 +34,23 @@ class Backend:
 
         self.db_handler.commit()
 
+        if self.get_pay_period() is None:
+            _logger.info("no pay period set, using default pay period")
+
+            pay_period = self._get_default_pay_period()
+            self.update_pay_period(pay_period)
+
         _logger.info("backend ready")
 
     @error_handler
     def get_pay_period(self) -> Union[PayPeriod, None]:
         return self.db_handler.get_pay_period()
+
+    def _get_default_pay_period(self) -> PayPeriod:
+        start_date = datetime.now().date()
+        end_date = utils.next_date(start_date, constants.PAY_PERIOD_DAYS - 1)
+
+        return PayPeriod(start_date, end_date)
 
     @error_handler
     def update_pay_period(self, pay_period: PayPeriod) -> None:
