@@ -12,9 +12,9 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QCursor
 
-import gui.constants
-from gui import qutils
-from gui.employees_tab.employees_table import EmployeesTable
+from gui import gui_utils
+from gui import gui_constants
+from gui.employees_table import EmployeesTable
 
 from backend.backend import backend
 from backend.errors import CSVReadError, InternalError
@@ -139,12 +139,12 @@ class EmployeeImporter(QWidget):
 
         except CSVReadError as e:
             self.filename_label.setStyleSheet("color: red;")
-            dialog = qutils.create_error_dialog("Read failed.", str(e))
+            dialog = gui_utils.create_error_dialog("Read failed.", str(e))
             dialog.exec()
 
         except InternalError as e:
             self.filename_label.setStyleSheet("color: red;")
-            dialog = qutils.create_error_dialog(gui.constants.INTERNAL_ERR_MSG)
+            dialog = gui_utils.create_error_dialog(gui_constants.INTERNAL_ERR_MSG)
             dialog.exec()
 
         else:
@@ -153,7 +153,7 @@ class EmployeeImporter(QWidget):
                 self.preview_table.populate_table(self.employees)
 
             self.filename_label.setStyleSheet("color: green;")
-            dialog = qutils.create_info_dialog("Read successful.")
+            dialog = gui_utils.create_info_dialog("Read successful.")
             dialog.exec()
 
     def _open_file_picker_window(self) -> str:
@@ -163,7 +163,7 @@ class EmployeeImporter(QWidget):
             parent=self,
             caption="Select a file",
             # dir=os.path.expanduser("~"), # uncomment when creating the .exe, gives home dir
-            dir=os.getcwd(),
+            dir=os.getcwd(), # TODO: get this from backend
             filter=file_filter
         )
 
@@ -175,15 +175,15 @@ class EmployeeImporter(QWidget):
         try:
             backend.add_employees(self.employees)
         except EmployeeAlreadyExistsError as e:
-            dialog = qutils.create_error_dialog("Import failed.", str(e))
+            dialog = gui_utils.create_error_dialog("Import failed.", str(e))
             dialog.exec()
         except InternalError:
-            dialog = qutils.create_error_dialog(gui.constants.INTERNAL_ERR_MSG)
+            dialog = gui_utils.create_error_dialog(gui_constants.INTERNAL_ERR_MSG)
             dialog.exec()
         else:
             self.EMPLOYEES_UPDATED.emit()
 
-            dialog = qutils.create_info_dialog("Employees imported successfully.")
+            dialog = gui_utils.create_info_dialog("Employees imported successfully.")
 
             dialog.exec()
             self.DONE.emit()

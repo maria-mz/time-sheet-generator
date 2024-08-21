@@ -10,11 +10,11 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Signal
 from enum import Enum
 
-import gui.constants
-from gui import qutils
-from gui.employees_tab.employee_profile import EmployeeProfile
-from gui.employees_tab.timesheet.qshift import InvalidShiftValue
-from gui.employees_tab.timesheet.timesheet_editor import TimesheetEditor
+from gui import gui_utils
+from gui import gui_constants
+from gui.employee_profile import EmployeeProfile
+from gui.timesheet.qshift import InvalidShiftValue
+from gui.timesheet.timesheet_editor import TimesheetEditor
 
 from backend.backend import backend
 from backend.errors import InternalError
@@ -104,7 +104,7 @@ class EmployeeEditor(QWidget):
         try:
             employee = self._extract_employee()
         except InvalidShiftValue:
-            dialog = qutils.create_warning_dialog(
+            dialog = gui_utils.create_warning_dialog(
                 "Please correct the highlighted fields and try again."
             )
             dialog.exec()
@@ -113,12 +113,12 @@ class EmployeeEditor(QWidget):
         try:
             backend.update_employee(employee)
         except InternalError:
-            dialog = qutils.create_error_dialog(gui.constants.INTERNAL_ERR_MSG)
+            dialog = gui_utils.create_error_dialog(gui_constants.INTERNAL_ERR_MSG)
             dialog.exec()
         else:
             self.EMPLOYEE_UPDATED.emit()
 
-            dialog = qutils.create_info_dialog("Employee saved.")
+            dialog = gui_utils.create_info_dialog("Employee saved.")
             dialog.exec()
 
             self.DONE.emit()
@@ -127,7 +127,7 @@ class EmployeeEditor(QWidget):
         try:
             employee = self._extract_employee()
         except InvalidShiftValue:
-            dialog = qutils.create_warning_dialog(
+            dialog = gui_utils.create_warning_dialog(
                 "Please correct the highlighted fields and try again."
             )
             dialog.exec()
@@ -136,21 +136,21 @@ class EmployeeEditor(QWidget):
         try:
             backend.add_employee(employee)
         except EmployeeAlreadyExistsError as e:
-            dialog = qutils.create_error_dialog("Failed to add employee.", str(e))
+            dialog = gui_utils.create_error_dialog("Failed to add employee.", str(e))
             dialog.exec()
         except InternalError:
-            dialog = qutils.create_error_dialog(gui.constants.INTERNAL_ERR_MSG)
+            dialog = gui_utils.create_error_dialog(gui_constants.INTERNAL_ERR_MSG)
             dialog.exec()
         else:
             self.EMPLOYEE_UPDATED.emit()
 
-            dialog = qutils.create_info_dialog("Employee added successfully.")
+            dialog = gui_utils.create_info_dialog("Employee added successfully.")
             dialog.exec()
 
             self.DONE.emit()
 
     def _delete_employee(self) -> None:
-        dialog = qutils.create_confirm_dialog("Delete employee?", "This cannot be undone.")
+        dialog = gui_utils.create_confirm_dialog("Delete employee?", "This cannot be undone.")
 
         choice = dialog.exec()
 
@@ -162,12 +162,12 @@ class EmployeeEditor(QWidget):
         try:
             backend.delete_employee(employee)
         except InternalError:
-            dialog = qutils.create_error_dialog(gui.constants.INTERNAL_ERR_MSG)
+            dialog = gui_utils.create_error_dialog(gui_constants.INTERNAL_ERR_MSG)
             dialog.exec()
         else:
             self.EMPLOYEE_UPDATED.emit()
 
-            dialog = qutils.create_info_dialog("Employee deleted.")
+            dialog = gui_utils.create_info_dialog("Employee deleted.")
             choice = dialog.exec()
 
             self.DONE.emit()

@@ -14,8 +14,8 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import QDate, Qt, Signal, Slot
 from PySide6.QtGui import QFont
 
-import gui.constants
-from gui import qutils
+from gui import gui_constants
+from gui import gui_utils
 
 from backend.backend import backend
 from backend.errors import InternalError
@@ -43,8 +43,8 @@ class SettingsTab(QWidget):
         self.setLayout(layout)
 
     def update_pay_period(self, pay_period: PayPeriod):
-        self.q_pay_period.start_date_edit.setDate(qutils.date_to_qdate(pay_period.start_date))
-        self.q_pay_period.end_date_edit.setDate(qutils.date_to_qdate(pay_period.end_date))
+        self.q_pay_period.start_date_edit.setDate(gui_utils.date_to_qdate(pay_period.start_date))
+        self.q_pay_period.end_date_edit.setDate(gui_utils.date_to_qdate(pay_period.end_date))
 
     def _create_main_layout(self) -> QVBoxLayout:
         layout = QVBoxLayout()
@@ -134,14 +134,14 @@ class SettingsTab(QWidget):
         start_date_edit = QDateEdit()
         start_date_edit.setCalendarPopup(True)
         start_date_edit.setFixedWidth(200)
-        start_date_edit.setDate(qutils.date_to_qdate(pay_period.start_date))
+        start_date_edit.setDate(gui_utils.date_to_qdate(pay_period.start_date))
         start_date_edit.userDateChanged.connect(self._on_start_date_changed)
 
         end_date_edit = QDateEdit()
         end_date_edit.setCalendarPopup(True)
         end_date_edit.setFixedWidth(200)
         end_date_edit.setEnabled(False)
-        end_date_edit.setDate(qutils.date_to_qdate(pay_period.end_date))
+        end_date_edit.setDate(gui_utils.date_to_qdate(pay_period.end_date))
 
         return QPayPeriod(
             start_date_edit=start_date_edit, end_date_edit=end_date_edit
@@ -150,14 +150,14 @@ class SettingsTab(QWidget):
     @Slot(QDate)
     def _on_start_date_changed(self, date: QDate):
         end_date = utils.next_date(
-            curr_date=qutils.qdate_to_date(date),
+            curr_date=gui_utils.qdate_to_date(date),
             days=constants.PAY_PERIOD_DAYS - 1
         )
-        self.q_pay_period.end_date_edit.setDate(qutils.date_to_qdate(end_date))
+        self.q_pay_period.end_date_edit.setDate(gui_utils.date_to_qdate(end_date))
 
     @Slot()
     def _on_update(self):
-        dialog = qutils.create_confirm_dialog(
+        dialog = gui_utils.create_confirm_dialog(
             "Update pay period?",
             "You will permanently lose all employee data. Please make sure " + \
             "that any timesheet reports are saved before proceeding."
@@ -173,12 +173,12 @@ class SettingsTab(QWidget):
         try:
             backend.update_pay_period(pay_period)
         except InternalError:
-            dialog = qutils.create_error_dialog(gui.constants.INTERNAL_ERR_MSG)
+            dialog = gui_utils.create_error_dialog(gui_constants.INTERNAL_ERR_MSG)
             dialog.exec()
         else:
             self.PAY_PERIOD_UPDATED.emit()
 
-            dialog = qutils.create_info_dialog("Pay period updated.")
+            dialog = gui_utils.create_info_dialog("Pay period updated.")
             dialog.exec()
 
     def _extract_pay_period(self) -> PayPeriod:
@@ -186,6 +186,6 @@ class SettingsTab(QWidget):
         end_date = self.q_pay_period.end_date_edit.date()
 
         return PayPeriod(
-            start_date=qutils.qdate_to_date(start_date),
-            end_date=qutils.qdate_to_date(end_date)
+            start_date=gui_utils.qdate_to_date(start_date),
+            end_date=gui_utils.qdate_to_date(end_date)
         )

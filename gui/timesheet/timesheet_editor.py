@@ -16,7 +16,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 
 from db.db_data import Employee, Shift
-from gui.employees_tab.timesheet.qshift import QShift
+from gui.timesheet.qshift import QShift
 
 
 MAX_ENTRIES_TO_SHOW = 7

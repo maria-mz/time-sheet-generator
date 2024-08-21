@@ -13,19 +13,19 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Slot, Qt, QSize
 from PySide6.QtGui import QIcon
 
-import gui.constants
-from gui import qutils
-from gui.employees_tab.employees_table import EmployeesTable
-from gui.employees_tab.employee_editor import EmployeeEditor, EditorMode
-from gui.employees_tab.employee_importer import EmployeeImporter
-from gui.employees_tab.employee_profile import EmployeeProfile
+from gui import gui_utils
+from gui import gui_constants
+from gui.employees_table import EmployeesTable
+from gui.employee_editor import EmployeeEditor, EditorMode
+from gui.employee_importer import EmployeeImporter
+from gui.employee_profile import EmployeeProfile
 
 import utils
 from backend.backend import backend
 from backend.errors import InternalError
 
 
-class EmployeesTab(QWidget):
+class TimesheetTab(QWidget):
     def __init__(self):
         super().__init__()
 
@@ -64,7 +64,7 @@ class EmployeesTab(QWidget):
         return layout
 
     def _create_header_layout(self) -> QHBoxLayout:
-        title = QLabel("Employees")
+        title = QLabel("Timesheet")
         title.setStyleSheet("font-weight: bold; font-size: 24px")
 
         subtitle = QLabel(
@@ -170,7 +170,7 @@ class EmployeesTab(QWidget):
         self.launch_window("Import Employees", importer, self.width(), self.height())
 
     def _delete_employees(self):
-        dialog = qutils.create_confirm_dialog("Delete all employees?", "This cannot be undone.")
+        dialog = gui_utils.create_confirm_dialog("Delete all employees?", "This cannot be undone.")
 
         choice = dialog.exec()
 
@@ -180,11 +180,11 @@ class EmployeesTab(QWidget):
         try:
             backend.delete_employees()
         except InternalError:
-            dialog = qutils.create_error_dialog(gui.constants.INTERNAL_ERR_MSG)
+            dialog = gui_utils.create_error_dialog(gui_constants.INTERNAL_ERR_MSG)
             dialog.exec()
         else:
             self.refresh_tab()
-            dialog = qutils.create_info_dialog("Employees deleted.")
+            dialog = gui_utils.create_info_dialog("Employees deleted.")
             choice = dialog.exec()
 
     def _open_save_file_window(self) -> str:
@@ -203,7 +203,7 @@ class EmployeesTab(QWidget):
         try:
             backend.open_explorer(file_path)
         except InternalError:
-            dialog = qutils.create_error_dialog(gui.constants.INTERNAL_ERR_MSG)
+            dialog = gui_utils.create_error_dialog(gui_constants.INTERNAL_ERR_MSG)
             dialog.exec()
 
     @Slot()
@@ -219,10 +219,10 @@ class EmployeesTab(QWidget):
                 file_path=file_path
             )
         except InternalError:
-            dialog = qutils.create_error_dialog(gui.constants.INTERNAL_ERR_MSG)
+            dialog = gui_utils.create_error_dialog(gui_constants.INTERNAL_ERR_MSG)
             dialog.exec()
         else:
-            dialog = qutils.create_yes_no_dialog("PDF saved. View output location?")
+            dialog = gui_utils.create_yes_no_dialog("PDF saved. View output location?")
             choice = dialog.exec()
 
             if choice == QMessageBox.Yes:

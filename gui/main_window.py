@@ -1,8 +1,8 @@
 from PySide6.QtWidgets import QMainWindow, QTabWidget
 from PySide6.QtCore import Slot
 
-from gui.settings_tab.settings_tab import SettingsTab
-from gui.employees_tab.employees_tab import EmployeesTab
+from gui.settings_tab import SettingsTab
+from gui.timesheet_tab import TimesheetTab
 
 from backend.backend import backend
 import constants
@@ -27,11 +27,11 @@ class MainWindow(QMainWindow):
 
         self.settings_tab.PAY_PERIOD_UPDATED.connect(self._on_save_update_table)
 
-        self.employees_tab = EmployeesTab()
+        self.employees_tab = TimesheetTab()
 
         # Add tabs to widget
         tabs.addTab(self.settings_tab, "Settings")
-        tabs.addTab(self.employees_tab, "Employees")
+        tabs.addTab(self.employees_tab, "Timesheet")
 
         tabs.currentChanged.connect(self._on_tab_changed)
 
