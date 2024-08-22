@@ -32,8 +32,6 @@ class Backend:
         self.db_handler.create_shift_table()
         self.db_handler.create_employee_table()
 
-        self.db_handler.commit()
-
         if self.get_pay_period() is None:
             _logger.info("no pay period set, using default pay period")
 
@@ -65,27 +63,22 @@ class Backend:
     @error_handler
     def update_employee(self, employee: Employee) -> None:
         self.db_handler.update_employee(employee)
-        self.db_handler.commit()
 
     @error_handler
     def update_employees(self, employees: list[Employee]) -> None:
         self.db_handler.update_employees(employees)
-        self.db_handler.commit()
 
     @error_handler
     def add_employee(self, employee: Employee) -> None:
         self.db_handler.add_employee(employee)
-        self.db_handler.commit()
 
     @error_handler
     def add_employees(self, employees: list[Employee]) -> None:
         self.db_handler.add_employees(employees)
-        self.db_handler.commit()
 
     @error_handler
     def delete_employee(self, employee: Employee) -> None:
         self.db_handler.delete_employee(employee.employee_id)
-        self.db_handler.commit()
 
     @error_handler
     def delete_employees(self) -> None:
@@ -97,8 +90,6 @@ class Backend:
 
         self.db_handler.create_shift_table()
         self.db_handler.create_employee_table()
-
-        self.db_handler.commit()
 
     @error_handler
     def get_employees(self) -> list[Employee]:
@@ -165,6 +156,7 @@ class Backend:
 
         return shifts
 
+    @error_handler
     def save_timesheet(self, employees: list[Employee], file_path: str) -> None:
         timesheet = PDFTimesheet(employees, filename=file_path)
         timesheet.get_pdf().save()
@@ -172,6 +164,7 @@ class Backend:
     def get_home_dir(self) -> str:
         return os.path.expanduser("~")
 
+    @error_handler
     def open_explorer(self, file_path: str) -> None:
         os_name = platform.system()
 

@@ -10,7 +10,7 @@ import constants
 @dataclass
 class PayPeriod:
     """
-    Pay Period settings data
+    Pay period details
     """
     start_date: datetime.datetime
     end_date: datetime.datetime
@@ -19,7 +19,7 @@ class PayPeriod:
 @dataclass
 class Shift:
     """
-    Shift table row data
+    Shift details
     """
     date: datetime.date
     time_in: Union[datetime.time, None] = constants.DEFAULT_TIME_IN
@@ -31,7 +31,7 @@ class Shift:
 @dataclass
 class Employee:
     """
-    Employee table row data and their shifts.
+    Employee details and their shifts
     """
     employee_id: str
     first_name: str
