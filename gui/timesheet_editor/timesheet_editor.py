@@ -11,8 +11,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 
 from db.db_data import Employee, Shift
-from gui.gui_data import ShiftText
-from gui.timesheet_new.timesheet_page import TimesheetPage
+from gui.timesheet_editor.timesheet_page import TimesheetPage
 
 
 SHIFTS_PER_PAGE = 7
@@ -93,6 +92,5 @@ class TimesheetEditor(QWidget):
     def _switch_page(self, idx: int) -> None:
         self._page_layout.setCurrentIndex(idx)
 
-    @property
-    def shifts(self) -> list[ShiftText]:
-        return [shift for page in self._pages for shift in page.shifts]
+    def get_shifts(self) -> list[Shift]:
+        return [shift for page in self._pages for shift in page.get_shifts()]

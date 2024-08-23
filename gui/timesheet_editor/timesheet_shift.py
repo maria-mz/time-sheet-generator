@@ -1,11 +1,10 @@
+from typing import Union
 from datetime import datetime
 
 from PySide6.QtWidgets import QLabel, QLineEdit
 
-from db.db_data import Shift
-from gui.gui_data import ShiftText
-
 import validation
+from db.db_data import Shift
 
 
 HOURS_ERR_TOOLTIP = "Please enter a number with up to 2 digits " + \
@@ -98,24 +97,35 @@ class TimesheetShift:
         edit.setStyleSheet("")
 
     def _handle_input(self) -> None:
-        """
-        Handle input for current field values. Normally, inputs are handled
-        after editing is finished, but if the user saves while editing, it
-        may not trigger the signal in time.
-        """
         self._handle_time_input(self.time_in_edit)
         self._handle_time_input(self.time_out_edit)
         self._handle_hours_input(self.hours_reg_edit)
         self._handle_hours_input(self.hours_ot_edit)
 
-    @property
-    def shift(self) -> ShiftText:
-        self._handle_input() # TODO: Not sure how to go about this...
+    def _get_time(self, time_edit: QLineEdit) -> Union[datetime.time, None]:
+        text = time_edit.text()
+        return datetime.strptime(text, TIME_FORMAT).time() if text else None
 
-        return ShiftText(
+    def _get_hours(self, hours_edit: QLineEdit) -> str:
+        text = hours_edit.text()
+
+        if not validation.validate_hours(text):
+            raise ValueError
+
+        return text
+
+    def get_shift(self) -> Shift:
+        """
+        Collects and returns the current shift data from input fields.
+        Will apply all edits, even if a field is currently being edited.
+        Raises ValueError if any of the fields are invalid.
+        """
+        self._handle_input()
+
+        return Shift(
             date=self.date,
-            time_in=self.time_in_edit.text(),
-            time_out=self.time_out_edit.text(),
+            time_in=self._get_time(self.time_in_edit),
+            time_out=self._get_time(self.time_out_edit),
             hours_reg=self.hours_reg_edit.text(),
             hours_ot=self.hours_ot_edit.text()
         )

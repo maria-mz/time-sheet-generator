@@ -7,8 +7,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 
 from db.db_data import Shift
-from gui.gui_data import ShiftText
-from gui.timesheet_new.timesheet_shift import TimesheetShift
+from gui.timesheet_editor.timesheet_shift import TimesheetShift
 
 
 DATE_TXT = "Date"
@@ -59,8 +58,7 @@ class TimesheetPage(QWidget):
 
         self.setLayout(grid)
 
-    @property
-    def shifts(self) -> list[ShiftText]:
+    def get_shifts(self) -> list[Shift]:
         return [
-            timesheet_shift.shift for timesheet_shift in self._timesheet_shifts
+            timesheet_shift.get_shift() for timesheet_shift in self._timesheet_shifts
         ]
