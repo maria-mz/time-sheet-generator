@@ -40,6 +40,9 @@ class EmployeeEditorUI(Protocol):
     def employee_id(self) -> str:
         ...
 
+    def get_employee(self) -> Employee:
+        ...
+
 
 class EmployeeService(Protocol):
     def update_employee(self, employee: Employee) -> None:
@@ -80,7 +83,7 @@ class EmployeeEditor(QWidget):
 
     def _handle_save_employee(self) -> None:
         try:
-            employee = self.get_employee()
+            employee = self._ui.get_employee()
         except ValueError:
             show_dialog(DialogType.WARN, INVALID_FIELDS_MSG)
             return
@@ -95,7 +98,7 @@ class EmployeeEditor(QWidget):
 
     def _handle_add_employee(self) -> None:
         try:
-            employee = self.get_employee()
+            employee = self._ui.get_employee()
         except ValueError:
             show_dialog(DialogType.WARN, INVALID_FIELDS_MSG)
             return
