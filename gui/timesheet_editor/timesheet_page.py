@@ -43,7 +43,7 @@ class TimesheetPage(QWidget):
             grid.addWidget(title_label, 0, i)
 
         for i, tshift in enumerate(self._timesheet_shifts):
-            grid.addWidget(tshift.date.strftime(DAY_FORMAT), i + 1, 0)
+            grid.addWidget(QLabel(tshift.date.strftime(DAY_FORMAT)), i + 1, 0)
             grid.addWidget(tshift.date_label, i + 1, 1)
             grid.addWidget(tshift.time_in_edit, i + 1, 2)
             grid.addWidget(tshift.time_out_edit, i + 1, 3)

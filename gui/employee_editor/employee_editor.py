@@ -17,10 +17,6 @@ INVALID_FIELDS_MSG = "Please correct the highlighted fields and try again."
 
 class EmployeeEditorUI(Protocol):
     @property
-    def layout(self) -> QLayout:
-        ...
-
-    @property
     def delete_employee_btn(self) -> QPushButton:
         ...
 
@@ -38,6 +34,9 @@ class EmployeeEditorUI(Protocol):
 
     @property
     def employee_id(self) -> str:
+        ...
+
+    def layout(self) -> QLayout:
         ...
 
     def get_employee(self) -> Employee:
@@ -63,8 +62,8 @@ class DuplicateEmployeeNumber(Exception):
 
 
 class EmployeeEditor(QWidget):
-    saved_changes = Signal()
-    cancelled = Signal()
+    saved_edits = Signal()
+    edit_cancelled = Signal()
 
     def __init__(self, ui: EmployeeEditorUI, service: EmployeeService):
         super().__init__()
@@ -77,7 +76,7 @@ class EmployeeEditor(QWidget):
 
     def _init_conns(self) -> None:
         self._ui.delete_employee_btn.clicked.connect(self._handle_delete_employee)
-        self._ui.cancel_btn.clicked.connect(self._handle_cancel)
+        self._ui.cancel_btn.clicked.connect(self.edit_cancelled.emit)
         self._ui.save_employee_btn.clicked.connect(self._handle_save_employee)
         self._ui.add_employee_btn.clicked.connect(self._handle_add_employee)
 
@@ -94,7 +93,7 @@ class EmployeeEditor(QWidget):
             show_dialog(DialogType.ERR, gui_constants.INTERNAL_ERR_MSG)
         else:
             show_dialog(DialogType.INFO, "Employee saved.")
-            self.saved_changes.emit()
+            self.saved_edits.emit()
 
     def _handle_add_employee(self) -> None:
         try:
@@ -115,7 +114,7 @@ class EmployeeEditor(QWidget):
             show_dialog(DialogType.ERR, gui_constants.INTERNAL_ERR_MSG)
         else:
             show_dialog(DialogType.INFO, "Employee added.")
-            self.saved_changes.emit()
+            self.saved_edits.emit()
 
     def _handle_delete_employee(self) -> None:
         choice = show_dialog(
@@ -131,7 +130,4 @@ class EmployeeEditor(QWidget):
             show_dialog(DialogType.ERR, gui_constants.INTERNAL_ERR_MSG)
         else:
             show_dialog(DialogType.INFO, "Employee deleted.")
-            self.saved_changes.emit()
-
-    def _handle_cancel(self) -> None:
-        self.cancelled.emit()
+            self.saved_edits.emit()

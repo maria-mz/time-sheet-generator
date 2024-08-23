@@ -8,7 +8,6 @@ from PySide6.QtWidgets import (
     QSizePolicy,
     QSpacerItem,
 )
-from PySide6.QtCore import Signal
 from enum import Enum
 
 from gui.employee_profile import EmployeeProfile
@@ -23,8 +22,6 @@ class EditorMode(Enum):
 
 
 class EmployeeEditorUI(QWidget):
-    done = Signal()
-
     def __init__(self, mode: EditorMode, employee: Employee):
         super().__init__()
 
@@ -50,7 +47,7 @@ class EmployeeEditorUI(QWidget):
             btns_layout.addWidget(self.add_employee_btn)
 
         elif mode == EditorMode.EDIT:
-            btns_layout.addWidget(self.delete_btn)
+            btns_layout.addWidget(self.delete_employee_btn)
             btns_layout.addItem(btns_spacer)
             btns_layout.addWidget(self.cancel_btn)
             btns_layout.addWidget(self.save_employee_btn)

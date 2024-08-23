@@ -1,15 +1,12 @@
+import os
+import platform
+import subprocess
 import datetime
 from enum import Enum, auto
+from typing import Protocol
 
-from PySide6.QtWidgets import QMessageBox, QFrame
+from PySide6.QtWidgets import QWidget, QMessageBox, QFrame, QVBoxLayout
 from PySide6.QtCore import QDate, QTime
-
-
-class DialogType(Enum):
-    INFO = auto()
-    WARN = auto()
-    ERR = auto()
-    CONFIRM = auto()
 
 
 def date_to_qdate(date: datetime.date) -> QDate:
@@ -27,12 +24,20 @@ def qtime_to_time(qtime: QTime) -> datetime.time:
 def is_text_empty(text: str) -> bool:
     return text.strip() == ""
 
+
 def create_sunken_line() -> QFrame:
     line = QFrame()
     line.setFrameShape(QFrame.HLine)
     line.setFrameShadow(QFrame.Sunken)
 
     return line
+
+
+class DialogType(Enum):
+    INFO = auto()
+    WARN = auto()
+    ERR = auto()
+    CONFIRM = auto()
 
 def show_dialog(
     dialog_type: DialogType,
@@ -93,7 +98,7 @@ def show_dialog(
         dialog.setIcon(QMessageBox.Question)
 
     if buttons:
-        for button_text, role in buttons.items():
+        for button_text, role in buttons:
             dialog.addButton(button_text, role)
     else:
         if dialog_type == DialogType.INFO:
@@ -106,3 +111,64 @@ def show_dialog(
             dialog.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
 
     return dialog.exec()
+
+
+class Window(Protocol):
+    def show(self) -> None:
+        ...
+    
+    def close(self) -> None:
+        ...
+
+def create_window(
+    title: str,
+    widget: QWidget,
+    w: int = None,
+    h: int = None
+) -> Window:
+    """
+    Creates a window that can be opened and closed.
+
+    :param title: The window's title.
+    :param widget: The widget to display in the window.
+    :param w: Optional minimum width of the window.
+    :param h: Optional minimum height of the window.
+
+    :return: A `Window`.
+    """
+    window = QWidget()
+
+    if w and h:
+        window.setMinimumWidth(w)
+        window.setMinimumHeight(h)
+
+    layout = QVBoxLayout()
+    layout.addWidget(widget)
+
+    window.setWindowTitle(title)
+    window.setLayout(layout)
+
+    return window
+
+
+def get_current_dir() -> str:
+    return os.getcwd()
+
+
+def get_home_dir() -> str:
+    return os.path.expanduser("~")
+
+
+def show_file_gui(file_path: str) -> None:
+    os_name = platform.system()
+
+    if os_name == 'Windows':
+        args = ['explorer', '/select,', file_path]
+    elif os_name == 'Darwin':
+        args = ['open', '-R', file_path]
+    elif os_name == 'Linux':
+        args = (['xdg-open', file_path])
+    else:
+        raise ValueError(f"unsupported os name: {os_name}")
+
+    subprocess.run(args)

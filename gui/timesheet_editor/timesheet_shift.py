@@ -32,8 +32,11 @@ class TimesheetShift:
 
         return date_label
 
-    def _create_time_edit(self, time: str) -> QLineEdit:
-        edit = QLineEdit(time.strftime(TIME_FORMAT))
+    def _create_time_edit(self, time: Union[datetime.time, None]) -> QLineEdit:
+        if time:
+            edit = QLineEdit(time.strftime(TIME_FORMAT))
+        else:
+            edit = QLineEdit("")
 
         edit.editingFinished.connect(lambda: self._handle_time_input(edit))
         edit.textChanged.connect(lambda: self._clear_error_outline(edit))
