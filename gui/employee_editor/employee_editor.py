@@ -103,7 +103,8 @@ class EmployeeEditor(QWidget):
         try:
             self._service.add_employee(employee)
         except DuplicateEmployeeNumber:
-            self._dialog_handler.show_error_dialog(
+            show_dialog(
+                DialogType.ERR,
                 "Employee number already exists.",
                 "Please enter a unique employee number."
             )
@@ -114,8 +115,8 @@ class EmployeeEditor(QWidget):
             self.saved_changes.emit()
 
     def _handle_delete_employee(self) -> None:
-        choice = self._dialog_handler.show_confirm_dialog(
-            "Delete this employee?", "This cannot be undone!"
+        choice = show_dialog(
+            DialogType.CONFIRM, "Delete employee?", "This cannot be undone!"
         )
 
         if choice != QMessageBox.Yes:
