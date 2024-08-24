@@ -3,8 +3,8 @@ from typing import Protocol
 from PySide6.QtWidgets import QWidget, QPushButton, QMessageBox, QLayout
 from PySide6.QtCore import Signal
 
+from gui import gui_utils
 from gui import gui_constants
-from gui.gui_utils import show_dialog, DialogType, create_window, show_file_gui
 from gui.employee_editor.employee_editor_ui import EmployeeEditorUI, EditorMode
 from gui.employee_editor.employee_editor import EmployeeEditor
 from gui.employee_importer.employee_importer_ui import EmployeeImporterUI
@@ -12,6 +12,9 @@ from gui.employee_importer.employee_importer import EmployeeImporter
 from gui.employees_table import EmployeesTable
 
 from db.db_data import Employee
+
+
+# -------------------- INTERFACES [START] --------------------
 
 
 class EmployeeService(Protocol):
@@ -68,6 +71,9 @@ class TimesheetTabUI(Protocol):
         ...
 
 
+# -------------------- INTERFACES [END] --------------------
+
+
 class TimesheetTab(QWidget):
     def __init__(self, ui: TimesheetTabUI, service: EmployeeService):
         super().__init__()
@@ -89,13 +95,13 @@ class TimesheetTab(QWidget):
         self._ui.import_btn.clicked.connect(self._handle_import_employees)
         self._ui.add_employee_btn.clicked.connect(self._handle_add_employee)
 
-    def _handle_edit_employee(self, row: int, col: int) -> None:
+    def _handle_edit_employee(self, row: int, _: int) -> None:
         employee = self._ui.table.get_employee_from_row(row)
 
         editor_ui = EmployeeEditorUI(EditorMode.EDIT, employee)
         editor = EmployeeEditor(editor_ui, self._service)
 
-        self.window_popup = create_window("Edit Employee", editor)
+        self.window_popup = gui_utils.create_window("Edit Employee", editor)
 
         editor.saved_edits.connect(self.refresh_tab)
         editor.saved_edits.connect(self.window_popup.close)
@@ -109,7 +115,7 @@ class TimesheetTab(QWidget):
         editor_ui = EmployeeEditorUI(EditorMode.CREATE, employee)
         editor = EmployeeEditor(editor_ui, self._service)
 
-        self.window_popup = create_window("Add Employee", editor)
+        self.window_popup = gui_utils.create_window("Add Employee", editor)
 
         editor.saved_edits.connect(self.refresh_tab)
         editor.saved_edits.connect(self.window_popup.close)
@@ -121,7 +127,7 @@ class TimesheetTab(QWidget):
         importer_ui = EmployeeImporterUI()
         importer = EmployeeImporter(importer_ui, self._service)
 
-        self.window_popup = create_window(
+        self.window_popup = gui_utils.create_window(
             "Import Employees", importer, self.width(), self.height()
         )
 
@@ -132,8 +138,10 @@ class TimesheetTab(QWidget):
         self.window_popup.show()
 
     def _handle_delete_employees(self) -> None:
-        choice = show_dialog(
-            DialogType.CONFIRM, "Delete all employees?", "This cannot be undone!"
+        choice = gui_utils.show_dialog(
+            gui_utils.DialogType.CONFIRM,
+            "Delete all employees?",
+            "This cannot be undone!"
         )
 
         if choice != QMessageBox.Yes:
@@ -142,10 +150,12 @@ class TimesheetTab(QWidget):
         try:
             self._service.delete_employees()
         except Exception:
-            show_dialog(DialogType.ERR, gui_constants.INTERNAL_ERR_MSG)
+            gui_utils.show_dialog(
+                gui_utils.DialogType.ERR, gui_constants.INTERNAL_ERR_MSG
+            )
         else:
             self.refresh_tab()
-            show_dialog(DialogType.INFO, "Employees deleted.")
+            gui_utils.show_dialog(gui_utils.DialogType.INFO, "Employees deleted.")
 
     def _handle_download_pdf(self, file_path: str) -> None:
         if file_path == "":
@@ -156,11 +166,13 @@ class TimesheetTab(QWidget):
         try:
             self._service.save_timesheet(employees, file_path)
         except Exception:
-            show_dialog(DialogType.ERR, gui_constants.INTERNAL_ERR_MSG)
+            gui_utils.show_dialog(
+                gui_utils.DialogType.ERR, gui_constants.INTERNAL_ERR_MSG
+            )
             return
 
-        choice = show_dialog(
-            DialogType.INFO,
+        choice = gui_utils.show_dialog(
+            gui_utils.DialogType.INFO,
             "PDF saved.",
             buttons=[
                 ("View File", QMessageBox.AcceptRole),
@@ -170,14 +182,18 @@ class TimesheetTab(QWidget):
 
         if choice == 0:
             try:
-                show_file_gui(file_path)
+                gui_utils.open_file_in_native_file_gui(file_path)
             except Exception:
-                show_dialog(DialogType.ERR, gui_constants.INTERNAL_ERR_MSG)
+                gui_utils.show_dialog(
+                    gui_utils.DialogType.ERR, gui_constants.INTERNAL_ERR_MSG
+                )
 
     def refresh_tab(self) -> None:
         try:
             employees = self._service.get_employees()
         except Exception:
-            show_dialog(DialogType.ERR, gui_constants.INTERNAL_ERR_MSG)
+            gui_utils.show_dialog(
+                gui_utils.DialogType.ERR, gui_constants.INTERNAL_ERR_MSG
+            )
         else:
             self._ui.table.populate_table(employees)
