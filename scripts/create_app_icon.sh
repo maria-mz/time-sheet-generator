@@ -1,5 +1,5 @@
 #!/bin/bash
-# Create the .icns file for the 1024x1024 app icon png.
+# Create the .icns file for the app icon png.
 # Adapted from https://stackoverflow.com/questions/12306223/how-to-manually-create-icns-files-using-iconutil
 
 ICON_NAME="app-icon"
@@ -16,7 +16,7 @@ sips -z 256 256   $ICON --out $ICON_NAME.iconset/icon_128x128@2x.png
 sips -z 256 256   $ICON --out $ICON_NAME.iconset/icon_256x256.png
 sips -z 512 512   $ICON --out $ICON_NAME.iconset/icon_256x256@2x.png
 sips -z 512 512   $ICON --out $ICON_NAME.iconset/icon_512x512.png
-cp $ICON $ICON_NAME.iconset/icon_512x512@2x.png
+sips -z 512 512   $ICON --out $ICON_NAME.iconset/icon_512x512@2x.png
 
 iconutil -c icns $ICON_NAME.iconset
 
