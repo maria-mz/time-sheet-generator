@@ -129,6 +129,6 @@ class TimesheetShift:
             date=self.date,
             time_in=self._get_time(self.time_in_edit),
             time_out=self._get_time(self.time_out_edit),
-            hours_reg=self.hours_reg_edit.text(),
-            hours_ot=self.hours_ot_edit.text()
+            hours_reg=self._get_hours(self.hours_reg_edit),
+            hours_ot=self._get_hours(self.hours_ot_edit)
         )

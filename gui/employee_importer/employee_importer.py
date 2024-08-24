@@ -1,9 +1,9 @@
 from typing import Protocol
 
-from PySide6.QtWidgets import QWidget, QLayout
+from PySide6.QtWidgets import QWidget, QLayout, QPushButton
 from PySide6.QtCore import Signal
 
-from gui.gui_utils import show_dialog, DialogType
+from gui import gui_utils
 from gui import gui_constants
 
 from db.db_data import Employee
@@ -22,17 +22,14 @@ class EmployeeImporterUI(Protocol):
         ...
 
     @property
-    def import_employees_btn_clicked(self) -> Signal:
+    def import_employees_btn(self) -> QPushButton:
         ...
 
     @property
-    def cancel_btn_clicked(self) -> Signal:
+    def cancel_btn(self) -> QPushButton:
         ...
 
     def layout(self) -> QLayout:
-        ...
-
-    def set_import_btn_enabled(self, enabled: bool) -> None:
         ...
 
     def set_filename(self, text: str, style: str = "") -> None:
@@ -76,9 +73,9 @@ class EmployeeImporter(QWidget):
         self._init_conns()
 
     def _init_conns(self) -> None:
-        self._ui.cancel_btn_clicked.connect(self.cancelled_import.emit)
+        self._ui.cancel_btn.clicked.connect(self.cancelled_import.emit)
+        self._ui.import_employees_btn.clicked.connect(self._handle_import)
         self._ui.file_selected.connect(self._handle_file_selected)
-        self._ui.import_employees_btn_clicked.connect(self._handle_import)
 
     def _handle_file_selected(self, file_path: str) -> None:
         if not file_path:
@@ -86,26 +83,30 @@ class EmployeeImporter(QWidget):
 
         self._employees = []
         self._ui.populate_table([])
-        self._ui.set_import_btn_enabled(False)
+        self._ui.import_employees_btn.setEnabled(False)
 
         try:
             employees = self._service.generate_employees_from_csv(file_path)
 
         except CSVReadError as e:
             self._ui.set_filename(file_path, FILE_ERR_STYLE)
-            show_dialog(DialogType.ERR, "Failed to read CSV.", str(e))
+            gui_utils.show_dialog(
+                gui_utils.DialogType.ERR, "Failed to read CSV.", str(e)
+            )
 
         except Exception:
             self._ui.set_filename(file_path, FILE_ERR_STYLE)
-            show_dialog(DialogType.ERR, gui_constants.INTERNAL_ERR_MSG)
+            gui_utils.show_dialog(
+                gui_utils.DialogType.ERR, gui_constants.INTERNAL_ERR_MSG
+            )
 
         else:
             if len(employees) > 0:
-                self._ui.set_import_btn_enabled(True)
+                self._ui.import_employees_btn.setEnabled(True)
                 self._ui.populate_table(employees)
 
             self._ui.set_filename(file_path, FILE_SUCCESS_STYLE)
-            show_dialog(DialogType.INFO, "Read successful.")
+            gui_utils.show_dialog(gui_utils.DialogType.INFO, "Read successful.")
 
         self._employees = employees
 
@@ -113,13 +114,17 @@ class EmployeeImporter(QWidget):
         try:
             self._service.add_employees(self._employees)
         except DuplicateEmployeeNumber:
-            show_dialog(
-                DialogType.ERR,
+            gui_utils.show_dialog(
+                gui_utils.DialogType.ERR,
                 "Employee number already exists.",
                 "Please enter a unique employee number."
             )
         except Exception:
-            show_dialog(DialogType.ERR, gui_constants.INTERNAL_ERR_MSG)
+            gui_utils.show_dialog(
+                gui_utils.DialogType.ERR, gui_constants.INTERNAL_ERR_MSG
+            )
         else:
-            show_dialog(DialogType.INFO, "Employees imported successfully.")
+            gui_utils.show_dialog(
+                gui_utils.DialogType.INFO, "Employees imported successfully."
+            )
             self.imported_employees.emit()

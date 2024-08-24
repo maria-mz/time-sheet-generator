@@ -52,7 +52,7 @@ class EmployeeEditorUI(QWidget):
             btns_layout.addWidget(self.cancel_btn)
             btns_layout.addWidget(self.save_employee_btn)
 
-            self._profile_widget.set_id_enabled(False)
+            self._profile_widget.id_edit.setEnabled(False)
 
         layout = QVBoxLayout()
 

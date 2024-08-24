@@ -159,7 +159,7 @@ def get_home_dir() -> str:
     return os.path.expanduser("~")
 
 
-def show_file_gui(file_path: str) -> None:
+def open_file_in_native_file_gui(file_path: str) -> None:
     os_name = platform.system()
 
     if os_name == 'Windows':

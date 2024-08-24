@@ -19,8 +19,6 @@ from db.db_data import Employee
 
 class EmployeeImporterUI(QWidget):
     file_selected = Signal(str)
-    import_employees_btn_clicked = Signal()
-    cancel_btn_clicked = Signal()
 
     def __init__(self):
         super().__init__()
@@ -31,9 +29,9 @@ class EmployeeImporterUI(QWidget):
         self._preview_table.setCursor(QCursor(Qt.ForbiddenCursor))
         self._preview_table.setSelectionMode(QAbstractItemView.NoSelection)
 
-        self._import_employees_btn = QPushButton("Import Employees")
-        self._import_employees_btn.setEnabled(False)
-        self._import_employees_btn.clicked.connect(self.import_employees_btn_clicked.emit)
+        self.import_employees_btn = QPushButton("Import Employees")
+        self.import_employees_btn.setEnabled(False)
+        self.cancel_btn = QPushButton("Cancel")
 
         self._init_ui()
 
@@ -95,13 +93,10 @@ class EmployeeImporterUI(QWidget):
         return box
 
     def _create_btns_layout(self) -> QHBoxLayout:
-        cancel_btn = QPushButton("Cancel")
-        cancel_btn.clicked.connect(self.cancel_btn_clicked.emit)
-
         layout = QHBoxLayout()
 
-        layout.addWidget(cancel_btn)
-        layout.addWidget(self._import_employees_btn)
+        layout.addWidget(self.cancel_btn)
+        layout.addWidget(self.import_employees_btn)
         layout.setAlignment(Qt.AlignRight)
 
         return layout
@@ -123,9 +118,6 @@ class EmployeeImporterUI(QWidget):
         file_path = response[0]
 
         return file_path
-
-    def set_import_btn_enabled(self, enabled: bool) -> None:
-        self._import_employees_btn.setEnabled(enabled)
 
     def set_filename(self, text: str, style: str = "") -> None:
         self._filename_label.setText(text)

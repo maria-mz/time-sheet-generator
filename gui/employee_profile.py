@@ -34,9 +34,6 @@ class EmployeeProfile(QGroupBox):
         self.position_edit.setText(employee.position)
         self.contract_edit.setText(employee.contract)
 
-    def set_id_enabled(self, enabled: bool) -> None:
-        self.id_edit.setEnabled(enabled)
-
     def _create_layout(self) -> QGridLayout:
         grid = QGridLayout()
 

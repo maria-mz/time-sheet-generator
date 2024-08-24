@@ -3,8 +3,8 @@ from typing import Protocol
 from PySide6.QtWidgets import QWidget, QLayout, QPushButton, QMessageBox
 from PySide6.QtCore import Signal
 
+from gui import gui_utils
 from gui import gui_constants
-from gui.gui_utils import show_dialog, DialogType
 
 from db.db_data import Employee
 
@@ -84,41 +84,49 @@ class EmployeeEditor(QWidget):
         try:
             employee = self._ui.get_employee()
         except ValueError:
-            show_dialog(DialogType.WARN, INVALID_FIELDS_MSG)
+            gui_utils.show_dialog(
+                gui_utils.DialogType.WARN, "Couldn't save employee.", INVALID_FIELDS_MSG
+            )
             return
 
         try:
             self._service.update_employee(employee)
         except Exception:
-            show_dialog(DialogType.ERR, gui_constants.INTERNAL_ERR_MSG)
+            gui_utils.show_dialog(
+                gui_utils.DialogType.ERR, gui_constants.INTERNAL_ERR_MSG
+            )
         else:
-            show_dialog(DialogType.INFO, "Employee saved.")
+            gui_utils.show_dialog(gui_utils.DialogType.INFO, "Employee saved.")
             self.saved_edits.emit()
 
     def _handle_add_employee(self) -> None:
         try:
             employee = self._ui.get_employee()
         except ValueError:
-            show_dialog(DialogType.WARN, INVALID_FIELDS_MSG)
+            gui_utils.show_dialog(
+                gui_utils.DialogType.WARN, "Couldn't add employee.", INVALID_FIELDS_MSG
+            )
             return
 
         try:
             self._service.add_employee(employee)
         except DuplicateEmployeeNumber:
-            show_dialog(
-                DialogType.ERR,
+            gui_utils.show_dialog(
+                gui_utils.DialogType.ERR,
                 "Employee number already exists.",
                 "Please enter a unique employee number."
             )
         except Exception:
-            show_dialog(DialogType.ERR, gui_constants.INTERNAL_ERR_MSG)
+            gui_utils.show_dialog(
+                gui_utils.DialogType.ERR, gui_constants.INTERNAL_ERR_MSG
+            )
         else:
-            show_dialog(DialogType.INFO, "Employee added.")
+            gui_utils.show_dialog(gui_utils.DialogType.INFO, "Employee added.")
             self.saved_edits.emit()
 
     def _handle_delete_employee(self) -> None:
-        choice = show_dialog(
-            DialogType.CONFIRM, "Delete employee?", "This cannot be undone!"
+        choice = gui_utils.show_dialog(
+            gui_utils.DialogType.CONFIRM, "Delete employee?", "This cannot be undone!"
         )
 
         if choice != QMessageBox.Yes:
@@ -127,7 +135,9 @@ class EmployeeEditor(QWidget):
         try:
             self._service.delete_employee(self._ui.employee_id)
         except Exception:
-            show_dialog(DialogType.ERR, gui_constants.INTERNAL_ERR_MSG)
+            gui_utils.show_dialog(
+                gui_utils.DialogType.ERR, gui_constants.INTERNAL_ERR_MSG
+            )
         else:
-            show_dialog(DialogType.INFO, "Employee deleted.")
+            gui_utils.show_dialog(gui_utils.DialogType.INFO, "Employee deleted.")
             self.saved_edits.emit()
