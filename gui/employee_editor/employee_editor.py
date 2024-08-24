@@ -7,6 +7,7 @@ from gui import gui_utils
 from gui import gui_constants
 
 from db.db_data import Employee
+from db.db_handler import DuplicateEmployeeID
 
 
 INVALID_FIELDS_MSG = "Please correct the highlighted fields and try again."
@@ -52,10 +53,6 @@ class EmployeeService(Protocol):
 
     def add_employee(self, employee: Employee) -> None:
         ...
-
-
-class DuplicateEmployeeNumber(Exception):
-    pass
 
 
 # -------------------- INTERFACES [END] --------------------
@@ -111,10 +108,10 @@ class EmployeeEditor(QWidget):
 
         try:
             self._service.add_employee(employee)
-        except DuplicateEmployeeNumber:
+        except DuplicateEmployeeID:
             gui_utils.show_dialog(
                 gui_utils.DialogType.ERR,
-                "Employee number already exists.",
+                "Couldn't add employee.",
                 "Please enter a unique employee number."
             )
         except Exception:

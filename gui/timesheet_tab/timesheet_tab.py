@@ -173,7 +173,7 @@ class TimesheetTab(QWidget):
             "PDF saved.",
             buttons=[
                 ("View File", QMessageBox.AcceptRole),
-                ("Ok", QMessageBox.ActionRole)
+                ("OK", QMessageBox.ActionRole)
             ]
         )
 

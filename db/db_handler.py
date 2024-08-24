@@ -8,8 +8,11 @@ import constants
 from db.db_data import PayPeriod, Employee, Shift
 
 
-class EmployeeAlreadyExistsError(Exception):
-    pass
+class DuplicateEmployeeID(Exception):
+    """
+    Raised when trying to add an employee with an employee id
+    that already exists.
+    """
 
 
 class DatabaseHandler:
@@ -210,32 +213,37 @@ class DatabaseHandler:
     def add_employee(self, employee: Employee) -> None:
         """
         Add a new employee. If there is already an employee with the same id,
-        raises sqlite3.IntegrityError.
+        raises DuplicateEmployeeID.
         """
         with self.conn:
             self._add_employee(employee)
 
     def _add_employee(self, employee: Employee) -> None:
-        self.cur.execute(
-            """
-            INSERT INTO employee VALUES
-            (:employee_id, :first_name, :last_name, :position, :contract)
-            """,
-            {
-                "employee_id": employee.employee_id,
-                "first_name": employee.first_name,
-                "last_name": employee.last_name,
-                "position": employee.position,
-                "contract": employee.contract
-            }
-        )
+
+        try:
+            self.cur.execute(
+                """
+                INSERT INTO employee VALUES
+                (:employee_id, :first_name, :last_name, :position, :contract)
+                """,
+                {
+                    "employee_id": employee.employee_id,
+                    "first_name": employee.first_name,
+                    "last_name": employee.last_name,
+                    "position": employee.position,
+                    "contract": employee.contract
+                }
+            )
+        except sqlite3.IntegrityError:
+            raise DuplicateEmployeeID
 
         for shift in employee.shifts:
             self._add_shift(employee.employee_id, shift)
 
     def add_employees(self, employees: list[Employee]) -> None:
         """
-        Add a list of employees.
+        Add a list of employees. If there is an employee with the same id,
+        raises DuplicateEmployeeID.
         """
         with self.conn:
             for employee in employees:

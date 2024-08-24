@@ -6,16 +6,24 @@ from gui.settings_tab.settings_tab import SettingsTab
 from gui.timesheet_tab.timesheet_tab_ui import TimesheetTabUI
 from gui.timesheet_tab.timesheet_tab import TimesheetTab
 
-from backend.backend import backend
+from backend.backend import Backend
 import constants
 
 
-# TODO: handle all backend interaction here, in one place? (use signals)
-
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, backend: Backend):
         super().__init__()
 
+        self._backend = backend
+
+        pay_period = self._backend.get_pay_period()
+
+        self.settings_tab = SettingsTab(SettingsTabUI(pay_period), backend)
+        self.timesheet_tab = TimesheetTab(TimesheetTabUI(), backend)
+
+        self._init_ui()
+
+    def _init_ui(self) -> None:
         self.setWindowTitle(constants.APP_NAME)
 
         self.setMinimumWidth(1024)
@@ -23,14 +31,6 @@ class MainWindow(QMainWindow):
 
         tabs = QTabWidget(self)
 
-        pay_period = backend.get_pay_period()
-
-        self.settings_tab = SettingsTab(SettingsTabUI(pay_period), backend)
-        self.timesheet_tab = TimesheetTab(TimesheetTabUI(), backend)
-
-        self.settings_tab.pay_period_updated.connect(self.timesheet_tab.refresh_tab)
-
-        # Add tabs to widget
         tabs.addTab(self.settings_tab, "Settings")
         tabs.addTab(self.timesheet_tab, "Timesheet")
 
@@ -45,5 +45,5 @@ class MainWindow(QMainWindow):
         # hit "Update". Want to show the active pay period again
 
         if index == 0:
-            pay_period = backend.get_pay_period()
+            pay_period = self._backend.get_pay_period()
             self.settings_tab.update_pay_period(pay_period)

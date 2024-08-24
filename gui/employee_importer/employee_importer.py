@@ -6,7 +6,9 @@ from PySide6.QtCore import Signal
 from gui import gui_utils
 from gui import gui_constants
 
+from backend.backend import CSVReadError
 from db.db_data import Employee
+from db.db_handler import DuplicateEmployeeID
 
 
 FILE_SUCCESS_STYLE = "color: green;"
@@ -47,14 +49,6 @@ class EmployeeService(Protocol):
         ...
 
 
-class CSVReadError(Exception):
-    pass
-
-
-class DuplicateEmployeeNumber(Exception):
-    pass
-
-
 # -------------------- INTERFACES [END] --------------------
 
 
@@ -91,7 +85,7 @@ class EmployeeImporter(QWidget):
         except CSVReadError as e:
             self._ui.set_filename(file_path, FILE_ERR_STYLE)
             gui_utils.show_dialog(
-                gui_utils.DialogType.ERR, "Failed to read CSV.", str(e)
+                gui_utils.DialogType.ERR, "Couldn't read CSV.", str(e)
             )
 
         except Exception:
@@ -108,16 +102,16 @@ class EmployeeImporter(QWidget):
             self._ui.set_filename(file_path, FILE_SUCCESS_STYLE)
             gui_utils.show_dialog(gui_utils.DialogType.INFO, "Read successful.")
 
-        self._employees = employees
+            self._employees = employees
 
     def _handle_import(self) -> None:
         try:
             self._service.add_employees(self._employees)
-        except DuplicateEmployeeNumber:
+        except DuplicateEmployeeID:
             gui_utils.show_dialog(
                 gui_utils.DialogType.ERR,
-                "Employee number already exists.",
-                "Please enter a unique employee number."
+                "Couldn't import employees.",
+                "Please provide unique employee numbers for all employees."
             )
         except Exception:
             gui_utils.show_dialog(
