@@ -1,19 +1,29 @@
 from PySide6.QtWidgets import QMainWindow, QTabWidget
 from PySide6.QtCore import Slot
 
-from gui.settings_tab import SettingsTab
-from gui.timesheet_tab import TimesheetTab
+from gui.settings_tab.settings_tab_ui import SettingsTabUI
+from gui.settings_tab.settings_tab import SettingsTab
+from gui.timesheet_tab.timesheet_tab_ui import TimesheetTabUI
+from gui.timesheet_tab.timesheet_tab import TimesheetTab
 
-from backend.backend import backend
+from backend.backend import Backend
 import constants
 
 
-# TODO: handle all backend interaction here, in one place? (use signals)
-
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, backend: Backend):
         super().__init__()
 
+        self._backend = backend
+
+        pay_period = self._backend.get_pay_period()
+
+        self.settings_tab = SettingsTab(SettingsTabUI(pay_period), backend)
+        self.timesheet_tab = TimesheetTab(TimesheetTabUI(), backend)
+
+        self._init_ui()
+
+    def _init_ui(self) -> None:
         self.setWindowTitle(constants.APP_NAME)
 
         self.setMinimumWidth(1024)
@@ -21,25 +31,12 @@ class MainWindow(QMainWindow):
 
         tabs = QTabWidget(self)
 
-        pay_period = backend.get_pay_period()
-
-        self.settings_tab = SettingsTab(pay_period)
-
-        self.settings_tab.PAY_PERIOD_UPDATED.connect(self._on_save_update_table)
-
-        self.employees_tab = TimesheetTab()
-
-        # Add tabs to widget
         tabs.addTab(self.settings_tab, "Settings")
-        tabs.addTab(self.employees_tab, "Timesheet")
+        tabs.addTab(self.timesheet_tab, "Timesheet")
 
         tabs.currentChanged.connect(self._on_tab_changed)
 
         self.setCentralWidget(tabs)
-
-    @Slot()
-    def _on_save_update_table(self) -> None:
-        self.employees_tab.refresh_tab()
 
     @Slot(int)
     def _on_tab_changed(self, index: int) -> None:
@@ -48,5 +45,5 @@ class MainWindow(QMainWindow):
         # hit "Update". Want to show the active pay period again
 
         if index == 0:
-            pay_period = backend.get_pay_period()
+            pay_period = self._backend.get_pay_period()
             self.settings_tab.update_pay_period(pay_period)

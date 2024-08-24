@@ -1,4 +1,3 @@
-from dataclasses import dataclass
 from PySide6.QtWidgets import (
     QLabel,
     QLineEdit,
@@ -58,17 +57,22 @@ class EmployeeProfile(QGroupBox):
 
         return label
 
+    @property
     def first_name(self) -> str:
         return self.first_name_edit.text()
 
+    @property
     def last_name(self) -> str:
         return self.last_name_edit.text()
 
+    @property
     def employee_id(self) -> str:
         return self.id_edit.text()
 
+    @property
     def position(self) -> str:
         return self.position_edit.text()
 
+    @property
     def contract(self) -> str:
         return self.contract_edit.text()

@@ -1,32 +1,51 @@
-"""Global Backend Module"""
+"""Backend Module"""
 
 from datetime import datetime
 from typing import Union
 import pandas as pd
-import platform
-import subprocess
-import atexit
 import logging
-import sys
-import os
 
-from backend.errors import CSVReadError
-from backend.error_handler import error_handler
-from backend.pdf_timesheet import PDFTimesheet
-from db.db_handler import DatabaseHandler
-from db.db_data import PayPeriod, Shift, Employee
 import utils
 import constants
+from db.db_handler import DatabaseHandler, DuplicateEmployeeID
+from db.db_data import PayPeriod, Shift, Employee
+from backend.generate_timesheet import PDFTimesheet
 
 
 _logger = logging.getLogger(__name__)
 
 
+class CSVReadError(Exception):
+    """
+    Raised when an error occurs while reading a CSV file for importing employees.
+    """
+
+
+def error_handler(func):
+    """
+    Decorator that wraps a backend function in a try-except block to
+    log exceptions.
+    """
+
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except CSVReadError as e:
+            raise e
+        except DuplicateEmployeeID as e:
+            raise e
+        except Exception as e:
+            _logger.exception(f"Caught an unexpected exception: {e}")
+            raise e
+
+    return wrapper
+
+
 class Backend:
-    def __init__(self):
+    def __init__(self, db_handler: DatabaseHandler):
         _logger.info("backend initializing...")
 
-        self.db_handler = DatabaseHandler(constants.DB_PATH)
+        self.db_handler = db_handler
 
         self.db_handler.create_settings_table()
         self.db_handler.create_shift_table()
@@ -77,8 +96,8 @@ class Backend:
         self.db_handler.add_employees(employees)
 
     @error_handler
-    def delete_employee(self, employee: Employee) -> None:
-        self.db_handler.delete_employee(employee.employee_id)
+    def delete_employee(self, employee_id: str) -> None:
+        self.db_handler.delete_employee(employee_id)
 
     @error_handler
     def delete_employees(self) -> None:
@@ -137,7 +156,7 @@ class Backend:
             return []
 
         shifts = []
-        
+
         for i in range(constants.PAY_PERIOD_DAYS):
             date = utils.next_date(pay_period.start_date, i)
 
@@ -161,23 +180,8 @@ class Backend:
         timesheet = PDFTimesheet(employees, filename=file_path)
         timesheet.get_pdf().save()
 
-    def get_home_dir(self) -> str:
-        return os.path.expanduser("~")
-
     @error_handler
-    def open_explorer(self, file_path: str) -> None:
-        os_name = platform.system()
-
-        if os_name == 'Windows':
-            subprocess.run(['explorer', '/select,', file_path])
-        elif os_name == 'Darwin':
-            subprocess.run(['open', '-R', file_path])
-        elif os_name == 'Linux':
-            subprocess.run(['xdg-open', file_path])
-        else:
-            raise NotImplementedError('Unsupported OS:', os_name)
-
-    def create_empty_employee(self) -> Employee:
+    def create_blank_employee(self) -> Employee:
         return Employee(
             employee_id="",
             first_name="",
@@ -190,12 +194,3 @@ class Backend:
     def shutdown(self) -> None:
         _logger.info("backend shutting down")
         self.db_handler.close()
-
-
-try:
-    backend = Backend()
-except Exception as e:
-    _logger.exception(f"failed to initialize backend. terminating program")
-    sys.exit(1)
-
-atexit.register(backend.shutdown)

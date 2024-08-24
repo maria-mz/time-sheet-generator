@@ -1,5 +1,11 @@
+import os
+import platform
+import subprocess
 import datetime
-from PySide6.QtWidgets import QMessageBox
+from enum import Enum, auto
+from typing import Protocol
+
+from PySide6.QtWidgets import QWidget, QMessageBox, QFrame, QVBoxLayout
 from PySide6.QtCore import QDate, QTime
 
 
@@ -18,47 +24,151 @@ def qtime_to_time(qtime: QTime) -> datetime.time:
 def is_text_empty(text: str) -> bool:
     return text.strip() == ""
 
-def create_error_dialog(title: str, text: str = "") -> QMessageBox:
+
+def create_sunken_line() -> QFrame:
+    line = QFrame()
+    line.setFrameShape(QFrame.HLine)
+    line.setFrameShadow(QFrame.Sunken)
+
+    return line
+
+
+class DialogType(Enum):
+    INFO = auto()
+    WARN = auto()
+    ERR = auto()
+    CONFIRM = auto()
+
+def show_dialog(
+    dialog_type: DialogType,
+    title: str,
+    text: str = "",
+    buttons: list[tuple[str, QMessageBox.ButtonRole]] = None
+) -> int:
+    """
+    Creates and displays a customizable dialog box.
+
+    :param dialog_type: 
+        The type of dialog to display. It determines the icon and default
+        buttons. Options include:
+
+        - INFO: Shows an information dialog with an "Information" icon 
+          and an "Ok" button by default.
+        - WARNING: Shows a warning dialog with a "Warning" icon and an "Ok" 
+          button by default.
+        - ERROR: Shows an error dialog with a "Critical" icon and an "Ok" 
+          button by default.
+        - CONFIRM: Shows a confirmation dialog with a "Question" icon and 
+          "Yes" and "Cancel" buttons by default.
+
+    :param title: 
+        The bolded text of the dialog.
+
+    :param text: 
+        Optional. Informative text.
+
+    :param buttons: 
+        Optional. A list of tuples where each inner tuple contains a button 
+        label (str) and its associated `QMessageBox.ButtonRole`. If provided, 
+        these buttons will replace the default buttons for the given 
+        `dialog_type`.
+
+        Example::
+        
+            buttons = [
+                ('Ok', QMessageBox.AcceptRole),
+                ('Settings', QMessageBox.ActionRole)
+            ]
+
+    :return: 
+        An integer value representing the button that was clicked by the user. 
+    """
+
     dialog = QMessageBox()
     dialog.setText(title)
     dialog.setInformativeText(text)
-    dialog.setStandardButtons(QMessageBox.Ok)
-    dialog.setIcon(QMessageBox.Critical)
 
-    return dialog
+    if dialog_type == DialogType.INFO:
+        dialog.setIcon(QMessageBox.Information)
+    elif dialog_type == DialogType.WARN:
+        dialog.setIcon(QMessageBox.Warning)
+    elif dialog_type == DialogType.ERR:
+        dialog.setIcon(QMessageBox.Critical)
+    elif dialog_type == DialogType.CONFIRM:
+        dialog.setIcon(QMessageBox.Question)
 
-def create_warning_dialog(title: str, text: str = "") -> QMessageBox:
-    dialog = QMessageBox()
-    dialog.setText(title)
-    dialog.setInformativeText(text)
-    dialog.setStandardButtons(QMessageBox.Ok)
-    dialog.setIcon(QMessageBox.Warning)
+    if buttons:
+        for button_text, role in buttons:
+            dialog.addButton(button_text, role)
+    else:
+        if dialog_type == DialogType.INFO:
+            dialog.setStandardButtons(QMessageBox.Ok)
+        elif dialog_type == DialogType.WARN:
+            dialog.setStandardButtons(QMessageBox.Ok)
+        elif dialog_type == DialogType.ERR:
+            dialog.setStandardButtons(QMessageBox.Ok)
+        elif dialog_type == DialogType.CONFIRM:
+            dialog.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
 
-    return dialog
+    return dialog.exec()
 
-def create_info_dialog(title: str, text: str = "") -> QMessageBox:
-    dialog = QMessageBox()
-    dialog.setText(title)
-    dialog.setInformativeText(text)
-    dialog.setStandardButtons(QMessageBox.Ok)
-    dialog.setIcon(QMessageBox.Information)
 
-    return dialog
+class Window(Protocol):
+    def show(self) -> None:
+        ...
+    
+    def close(self) -> None:
+        ...
 
-def create_confirm_dialog(title: str, text: str = "") -> QMessageBox:
-    dialog = QMessageBox()
-    dialog.setText(title)
-    dialog.setInformativeText(text)
-    dialog.setStandardButtons(QMessageBox.Yes | QMessageBox.Cancel)
-    dialog.setIcon(QMessageBox.Warning)
+def create_window(
+    title: str,
+    widget: QWidget,
+    w: int = None,
+    h: int = None
+) -> Window:
+    """
+    Creates a window that can be opened and closed.
 
-    return dialog
+    :param title: The window's title.
+    :param widget: The widget to display in the window.
+    :param w: Optional minimum width of the window.
+    :param h: Optional minimum height of the window.
 
-def create_yes_no_dialog(title: str, text: str = "") -> QMessageBox:
-    dialog = QMessageBox()
-    dialog.setText(title)
-    dialog.setInformativeText(text)
-    dialog.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-    dialog.setIcon(QMessageBox.Information)
+    :return: A `Window`.
+    """
+    window = QWidget()
 
-    return dialog
+    if w and h:
+        window.setMinimumWidth(w)
+        window.setMinimumHeight(h)
+
+    layout = QVBoxLayout()
+    layout.addWidget(widget)
+
+    window.setWindowTitle(title)
+    window.setLayout(layout)
+
+    return window
+
+
+def get_current_dir() -> str:
+    return os.getcwd()
+
+
+def get_home_dir() -> str:
+    return os.path.expanduser("~")
+
+
+def open_file_in_native_file_gui(file_path: str) -> None:
+    os_name = platform.system()
+
+    if os_name == 'Windows':
+        args = ['explorer', '/select,', file_path]
+    elif os_name == 'Darwin':
+        args = ['open', '-R', file_path]
+    elif os_name == 'Linux':
+        args = (['xdg-open', file_path])
+    else:
+        raise ValueError(f"unsupported os name: {os_name}")
+
+    subprocess.run(args)
