@@ -1,5 +1,3 @@
-pytest
-
 # Using PySide6-Essentials to reduce package size
 pyside6-essentials
 

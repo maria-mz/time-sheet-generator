@@ -43,7 +43,7 @@ A Windows and macOS desktop application for logging employee hours and generatin
 
 <img src="images/add-employee-screenshot.png" width="100%">
 
-<p align="center"><b>Add Employee Window.</b> Similar to the <b>Edit Employee Window</b> for editing employee details, as shown in the first image. Add a new employee with default values initialized.</p>
+<p align="center"><b>Add Employee Window.</b> Add a new employee with default values initialized. Similar to the <b>Edit Employee Window.</b></p>
 
 
 ### Import Employee Window
