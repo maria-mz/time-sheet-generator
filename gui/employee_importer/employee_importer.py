@@ -60,7 +60,7 @@ class DuplicateEmployeeNumber(Exception):
 
 class EmployeeImporter(QWidget):
     imported_employees = Signal()
-    cancelled_import = Signal()
+    importing_finished = Signal()
 
     def __init__(self, ui: EmployeeImporterUI, service: EmployeeService):
         super().__init__()
@@ -73,7 +73,7 @@ class EmployeeImporter(QWidget):
         self._init_conns()
 
     def _init_conns(self) -> None:
-        self._ui.cancel_btn.clicked.connect(self.cancelled_import.emit)
+        self._ui.cancel_btn.clicked.connect(self.importing_finished.emit)
         self._ui.import_employees_btn.clicked.connect(self._handle_import)
         self._ui.file_selected.connect(self._handle_file_selected)
 
@@ -124,7 +124,8 @@ class EmployeeImporter(QWidget):
                 gui_utils.DialogType.ERR, gui_constants.INTERNAL_ERR_MSG
             )
         else:
+            self.imported_employees.emit()
             gui_utils.show_dialog(
                 gui_utils.DialogType.INFO, "Employees imported successfully."
             )
-            self.imported_employees.emit()
+            self.importing_finished.emit()

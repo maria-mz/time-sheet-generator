@@ -104,8 +104,7 @@ class TimesheetTab(QWidget):
         self.window_popup = gui_utils.create_window("Edit Employee", editor)
 
         editor.saved_edits.connect(self.refresh_tab)
-        editor.saved_edits.connect(self.window_popup.close)
-        editor.edit_cancelled.connect(self.window_popup.close)
+        editor.editing_finished.connect(self.window_popup.close)
 
         self.window_popup.show()
 
@@ -118,8 +117,7 @@ class TimesheetTab(QWidget):
         self.window_popup = gui_utils.create_window("Add Employee", editor)
 
         editor.saved_edits.connect(self.refresh_tab)
-        editor.saved_edits.connect(self.window_popup.close)
-        editor.edit_cancelled.connect(self.window_popup.close)
+        editor.editing_finished.connect(self.window_popup.close)
 
         self.window_popup.show()
 
@@ -132,8 +130,7 @@ class TimesheetTab(QWidget):
         )
 
         importer.imported_employees.connect(self.refresh_tab)
-        importer.imported_employees.connect(self.window_popup.close)
-        importer.cancelled_import.connect(self.window_popup.close)
+        importer.importing_finished.connect(self.window_popup.close)
 
         self.window_popup.show()
 

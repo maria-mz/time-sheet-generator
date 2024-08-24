@@ -63,7 +63,7 @@ class DuplicateEmployeeNumber(Exception):
 
 class EmployeeEditor(QWidget):
     saved_edits = Signal()
-    edit_cancelled = Signal()
+    editing_finished = Signal()
 
     def __init__(self, ui: EmployeeEditorUI, service: EmployeeService):
         super().__init__()
@@ -76,7 +76,7 @@ class EmployeeEditor(QWidget):
 
     def _init_conns(self) -> None:
         self._ui.delete_employee_btn.clicked.connect(self._handle_delete_employee)
-        self._ui.cancel_btn.clicked.connect(self.edit_cancelled.emit)
+        self._ui.cancel_btn.clicked.connect(self.editing_finished.emit)
         self._ui.save_employee_btn.clicked.connect(self._handle_save_employee)
         self._ui.add_employee_btn.clicked.connect(self._handle_add_employee)
 
@@ -96,8 +96,9 @@ class EmployeeEditor(QWidget):
                 gui_utils.DialogType.ERR, gui_constants.INTERNAL_ERR_MSG
             )
         else:
-            gui_utils.show_dialog(gui_utils.DialogType.INFO, "Employee saved.")
             self.saved_edits.emit()
+            gui_utils.show_dialog(gui_utils.DialogType.INFO, "Employee saved.")
+            self.editing_finished.emit()
 
     def _handle_add_employee(self) -> None:
         try:
@@ -121,8 +122,9 @@ class EmployeeEditor(QWidget):
                 gui_utils.DialogType.ERR, gui_constants.INTERNAL_ERR_MSG
             )
         else:
-            gui_utils.show_dialog(gui_utils.DialogType.INFO, "Employee added.")
             self.saved_edits.emit()
+            gui_utils.show_dialog(gui_utils.DialogType.INFO, "Employee added.")
+            self.editing_finished.emit()
 
     def _handle_delete_employee(self) -> None:
         choice = gui_utils.show_dialog(
@@ -139,5 +141,6 @@ class EmployeeEditor(QWidget):
                 gui_utils.DialogType.ERR, gui_constants.INTERNAL_ERR_MSG
             )
         else:
-            gui_utils.show_dialog(gui_utils.DialogType.INFO, "Employee deleted.")
             self.saved_edits.emit()
+            gui_utils.show_dialog(gui_utils.DialogType.INFO, "Employee deleted.")
+            self.editing_finished.emit()
