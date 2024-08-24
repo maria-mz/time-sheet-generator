@@ -176,7 +176,7 @@ class Backend:
         return shifts
 
     @error_handler
-    def download_pdf(self, employees: list[Employee], file_path: str) -> None:
+    def save_timesheet(self, employees: list[Employee], file_path: str) -> None:
         timesheet = PDFTimesheet(employees, filename=file_path)
         timesheet.get_pdf().save()
 
