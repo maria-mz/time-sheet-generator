@@ -35,6 +35,7 @@ class MainWindow(QMainWindow):
         tabs.addTab(self.timesheet_tab, "Timesheet")
 
         tabs.currentChanged.connect(self._on_tab_changed)
+        self.settings_tab.pay_period_updated.connect(self.timesheet_tab.refresh_tab)
 
         self.setCentralWidget(tabs)
 
