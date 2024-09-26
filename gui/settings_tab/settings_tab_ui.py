@@ -27,6 +27,7 @@ class SettingsTabUI(QWidget):
         self.update_btn = QPushButton("Update")
         self._start_date_edit = self._create_date_edit(pay_period.start_date)
         self._end_date_edit =  self._create_date_edit(pay_period.end_date)
+        self._end_date_edit.setEnabled(False)
 
         self._start_date_edit.userDateChanged.connect(self._on_start_date_changed)
 
