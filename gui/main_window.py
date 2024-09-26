@@ -1,6 +1,7 @@
-from PySide6.QtWidgets import QMainWindow, QTabWidget
-from PySide6.QtCore import Slot
+from PySide6.QtWidgets import QWidget, QTabWidget, QVBoxLayout, QLabel
+from PySide6.QtCore import Slot, Qt
 
+from gui import gui_constants
 from gui.settings_tab.settings_tab_ui import SettingsTabUI
 from gui.settings_tab.settings_tab import SettingsTab
 from gui.timesheet_tab.timesheet_tab_ui import TimesheetTabUI
@@ -10,7 +11,7 @@ from backend.backend import Backend
 import constants
 
 
-class MainWindow(QMainWindow):
+class MainWindow(QWidget):
     def __init__(self, backend: Backend):
         super().__init__()
 
@@ -21,23 +22,34 @@ class MainWindow(QMainWindow):
         self.settings_tab = SettingsTab(SettingsTabUI(pay_period), backend)
         self.timesheet_tab = TimesheetTab(TimesheetTabUI(), backend)
 
+        self.settings_tab.pay_period_updated.connect(self.timesheet_tab.refresh_tab)
+
         self._init_ui()
 
     def _init_ui(self) -> None:
         self.setWindowTitle(constants.APP_NAME)
+        self.setMinimumWidth(gui_constants.WINDOW_WIDTH)
+        self.setMinimumHeight(gui_constants.WINDOW_HEIGHT)
 
-        self.setMinimumWidth(1024)
-        self.setMinimumHeight(768)
+        tabs = self._create_tabs()
+        tabs.currentChanged.connect(self._on_tab_changed)
 
+        version = QLabel(f"Version: {constants.VERSION}")
+
+        layout = QVBoxLayout()
+
+        layout.addWidget(tabs)
+        layout.addWidget(version, alignment=Qt.AlignRight)
+
+        self.setLayout(layout)
+
+    def _create_tabs(self) -> QTabWidget:
         tabs = QTabWidget(self)
 
         tabs.addTab(self.settings_tab, "Settings")
         tabs.addTab(self.timesheet_tab, "Timesheet")
 
-        tabs.currentChanged.connect(self._on_tab_changed)
-        self.settings_tab.pay_period_updated.connect(self.timesheet_tab.refresh_tab)
-
-        self.setCentralWidget(tabs)
+        return tabs
 
     @Slot(int)
     def _on_tab_changed(self, index: int) -> None:

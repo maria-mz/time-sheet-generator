@@ -15,4 +15,6 @@ DATE_FORMAT = "%Y-%m-%d"
 DB_PATH = utils.load_file("assets/database.db")
 
 APP_NAME = "Timesheet Generator"
-COMPANY_NAME = "Company Name Placeholder"
+COMPANY_NAME = "Company Name"
+
+VERSION = "0.1.0"
